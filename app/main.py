@@ -258,6 +258,7 @@ from fastapi.responses import FileResponse
 # Check for production built frontend (Single-site unified deployment)
 candidates = [
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "dist")),
     os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
     os.path.abspath(os.path.join(os.getcwd(), "frontend", "dist")),
     os.path.abspath(os.path.join(os.getcwd(), "dist")),
