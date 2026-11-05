@@ -207,7 +207,7 @@ export default function JourneyPage() {
                 <Map className="w-5 h-5" />
               </span>
               <span className="text-xs font-mono uppercase tracking-wider text-teal-400 font-bold">
-                Module 3 • My Career Journey
+                Module 2 • My Career Journey
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

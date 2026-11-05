@@ -194,7 +194,7 @@ export default function GrowthPage() {
                 <TrendingUp className="w-5 h-5" />
               </span>
               <span className="text-xs font-mono uppercase tracking-wider text-rose-400 font-bold">
-                Module 4 • My Growth & Verified Competency
+                Module 3 • My Growth & Verified Competency
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

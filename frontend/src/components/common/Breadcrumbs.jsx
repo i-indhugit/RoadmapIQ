@@ -6,16 +6,17 @@ const ROUTE_LABELS = {
   '': 'Dashboard',
   'dashboard': 'Dashboard',
   'discover': 'Discover',
-  'assess': 'Assess',
   'journey': 'My Journey',
   'growth': 'My Growth',
+  'mentor': 'AI Mentor',
   'discovery': 'Discover',
   'careers': 'Discover',
   'explore': 'Discover',
   'my-career': 'My Career',
-  'assessment': 'Assess',
-  'skill-gap': 'Assess',
-  'skill-analysis': 'Assess',
+  'assess': 'My Journey',
+  'assessment': 'My Journey',
+  'skill-gap': 'My Journey',
+  'skill-analysis': 'My Journey',
   'roadmap': 'My Journey',
   'planner': 'My Journey',
   'preparation': 'My Journey',
@@ -24,8 +25,8 @@ const ROUTE_LABELS = {
   'progress': 'My Growth',
   'portfolio': 'My Growth',
   'weekly-review': 'My Journey',
-  'reassessment': 'Assess',
-  'assistant': 'AI Career Assistant',
+  'reassessment': 'My Journey',
+  'assistant': 'AI Mentor',
   'profile': 'My Profile',
   'settings': 'Settings',
   'arena': 'My Journey',
@@ -38,33 +39,53 @@ const ROUTE_LABELS = {
 const TAB_LABELS = {
   // Discover Module Tabs
   'suggestions': 'AI Career Matcher',
-  'target': 'Set Target & Saved',
-
-  // Assess Module Tabs
-  'take': 'Take Assessment',
-  'gaps': 'Skill Gaps & Readiness',
+  'target': 'Target Career & Duration',
+  'compare': 'Compare Careers',
+  'explore': 'Explore & Search (259+)',
+  'discover': 'Discover Careers',
+  'search': 'Search Careers',
+  'recommended': 'Recommended Careers',
+  'saved': 'Saved Careers',
 
   // My Journey Module Tabs
   'roadmap': 'Interactive Roadmap',
-  'tasks': 'Daily Tasks & Schedule',
+  'tasks': 'Daily Tasks & Workspace',
   'review': 'Weekly Review',
-  'practice': 'Practice & Challenges',
+  'practice': 'Projects & Practice',
+  'phases': 'Learning Phases',
+  'weekly-goals': 'Weekly Goals',
+  'daily-tasks': 'Daily Tasks',
+  'resources': 'Learning Resources',
+  'learn': 'Learn (Core Theory)',
+  'test': 'Test (Quizzes)',
+  'build': 'Build (Mini-Projects)',
+  'revise': 'Revise (Synthesis)',
+  'interview': 'Interview & Exam Prep',
+  'recommended-projects': 'Recommended Projects',
+  'assignments': 'Practical Assignments',
+  'challenges': 'Weekly Challenges',
+  'milestones': 'Project Milestones',
 
   // My Growth Module Tabs
   'portfolio': 'Skill Portfolio & Evidence',
   'tree': 'Visual Skill Tree',
   'activity': 'Activity & Streaks',
   'achievements': 'Achievements & Badges',
+  'dashboard': 'Progress Dashboard',
+  'daily-streak': 'Daily Streak',
+  'weekly-streak': 'Weekly Streak',
+  'xp-levels': 'XP & Levels',
+  'calendar': 'Learning Calendar',
 
-  // Discovery
-  'discover': 'Discover Careers',
-  'explore': 'Explore Career Domains',
-  'search': 'Search Careers',
-  'recommended': 'Recommended Careers',
-  'saved': 'Saved Careers',
-  'compare': 'Compare Careers',
+  // AI Mentor Module Tabs
+  'guidance': 'Real-Time Career Advice',
+  'concepts': 'Concept Deep Dives',
+  'gaps': 'Adaptive Recommendations',
+  'gap-explanation': 'Skill Gap Explanations',
+  'recommendations': 'Resource Recommendations',
+  'feedback': 'Study Pace & Feedback',
 
-  // My Career
+  // My Career Tabs
   'overview': 'Career Overview',
   'eligibility': 'Eligibility',
   'qualifications': 'Qualifications',
@@ -72,64 +93,24 @@ const TAB_LABELS = {
   'progression': 'Career Progression',
   'environment': 'Career Environment',
 
-  // Assessment
-  'config': 'Assessment Setup',
-  'testing': 'Active Assessment',
-  'history': 'Assessment History',
-
-  // Skill Analysis
+  // Performance Review Tabs
+  'summary': 'Weekly Summary',
+  'reflection': 'Habit Reflection',
+  'reschedule': 'Task Rescheduling',
+  'performance': 'Performance Review',
+  'revision': 'Weak Skill Revision',
+  'next-plan': 'Next Week Plan',
   'results': 'Assessment Results',
   'strong': 'Strong Skills',
   'developing': 'Developing Skills',
   'weak': 'Weak Skills',
   'missing': 'Missing Skills',
   'readiness': 'Career Readiness',
-
-  // Roadmap
-  'phases': 'Learning Phases',
-  'weekly-goals': 'Weekly Goals',
-  'daily-tasks': 'Daily Tasks',
-  'resources': 'Learning Resources',
-
-  // Prep Center
-  'learn': 'Learn (Core Theory)',
-  'test': 'Test (Quizzes)',
-  'build': 'Build (Mini-Projects)',
-  'revise': 'Revise (Synthesis)',
-  'interview': 'Interview & Exam Prep',
-
-  // Projects
-  'recommended-projects': 'Recommended Projects',
-  'assignments': 'Practical Assignments',
-  'challenges': 'Weekly Challenges',
-  'milestones': 'Project Milestones',
-
-  // Progress
-  'dashboard': 'Progress Dashboard',
-  'daily-streak': 'Daily Streak',
-  'weekly-streak': 'Weekly Streak',
-  'xp-levels': 'XP & Levels',
-  'calendar': 'Learning Calendar',
-
-  // Weekly Review
-  'assessment': 'Weekly Assessment',
-  'performance': 'Performance Review',
-  'revision': 'Weak Skill Revision',
-  'next-plan': 'Next Week Plan',
-
-  // Reassessment
   'retake': 'Retake Assessment',
   'compare-results': 'Compare Previous Results',
   'improvement-history': 'Skill Improvement History',
   'updated-readiness': 'Updated Readiness',
   'updated-roadmap': 'Generate Updated Roadmap',
-
-  // AI Assistant
-  'guidance': 'Career Guidance',
-  'concepts': 'Concept Explanations',
-  'gap-explanation': 'Skill Gap Explanations',
-  'recommendations': 'Resource Recommendations',
-  'feedback': 'Learning Feedback',
 
   // Settings
   'preferences': 'Learning Preferences',

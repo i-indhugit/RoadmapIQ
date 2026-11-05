@@ -30,11 +30,6 @@ const MODULE_STARTER_PROMPTS = {
     'What qualifications are needed for my target track?',
     'How do I transition into this field?',
   ],
-  assess: [
-    'Explain my lowest scoring diagnostic skill gap',
-    'Generate a practice question for my weak skill',
-    'How can I prepare for reassessment?',
-  ],
   journey: [
     'Explain the core concept in my current milestone',
     'How do I complete today\'s practical task?',
@@ -44,6 +39,11 @@ const MODULE_STARTER_PROMPTS = {
     'How do I improve my career readiness score?',
     'What project evidence should I submit for my portfolio?',
     'Tips to maintain my daily study streak',
+  ],
+  mentor: [
+    'What are the highest-impact skills to master first?',
+    'Explain the trade-offs between different frameworks',
+    'How should I schedule my weekly study hours?',
   ],
   default: [
     'What skill should I focus on first?',
@@ -76,9 +76,9 @@ const FloatingMentor = () => {
   const currentModuleKey = useMemo(() => {
     const path = location.pathname.toLowerCase();
     if (path.includes('discover') || path.includes('careers')) return 'discover';
-    if (path.includes('assess') || path.includes('skill-gap')) return 'assess';
     if (path.includes('journey') || path.includes('roadmap')) return 'journey';
     if (path.includes('growth') || path.includes('progress') || path.includes('portfolio')) return 'growth';
+    if (path.includes('mentor') || path.includes('assistant')) return 'mentor';
     return 'default';
   }, [location.pathname]);
 

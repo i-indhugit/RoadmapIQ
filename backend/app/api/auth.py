@@ -156,3 +156,4 @@ def get_current_user_profile(user: User = Depends(get_current_user)):
 def logout_user():
     """Client logs out by discarding the bearer token."""
     return MessageResponse(message="Successfully logged out.")
+

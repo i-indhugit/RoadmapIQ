@@ -138,11 +138,11 @@ const LearningAssistantPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <Badge variant="primary">Retrieval-Augmented Generation (RAG)</Badge>
+            <Badge variant="primary">Module 4 • AI Career Mentor</Badge>
             <span className="text-xs font-mono text-slate-400">Strict Source Attribution</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 flex items-center gap-2">
-            <span>AI Career Assistant</span>
+            <span>AI Career Mentor</span>
             <Bot className="w-6 h-6 text-brand-cyan" />
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
