@@ -5,12 +5,25 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
 # For SQLite, ensure directory exists and enable foreign keys
-db_url = settings.DATABASE_URL
+# For PostgreSQL (Neon), ensure pool pre-ping, reconnect, and pool recycling
+db_url = os.environ.get("DATABASE_URL") or settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
 connect_args = {}
+engine_kwargs = {}
+
 if db_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False, "timeout": 30}
+else:
+    engine_kwargs = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "pool_size": 10,
+        "max_overflow": 20,
+    }
 
-engine = create_engine(db_url, connect_args=connect_args)
+engine = create_engine(db_url, connect_args=connect_args, **engine_kwargs)
 
 # Enable foreign keys and WAL mode for SQLite
 if db_url.startswith("sqlite"):

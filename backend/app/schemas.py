@@ -106,6 +106,7 @@ class ProfileBase(BaseModel):
     learning_budget: str = Field("free_only", max_length=50)
     preferred_language: str = Field("en", max_length=20)
     placement_deadline: Optional[str] = None
+    career_goals: Optional[str] = None
     skills_assessment: Dict[str, int] = Field(default_factory=dict)  # {"slug": 0-5}
     assessed_skills: Dict[str, Any] = Field(default_factory=dict)
     xp: int = 100
@@ -137,6 +138,7 @@ class ProfileUpdate(BaseModel):
     learning_budget: Optional[str] = None
     preferred_language: Optional[str] = None
     placement_deadline: Optional[str] = None
+    career_goals: Optional[str] = None
     skills_assessment: Optional[Dict[str, int]] = None
     assessed_skills: Optional[Dict[str, Any]] = None
     avatar_style: Optional[str] = None

@@ -40,6 +40,8 @@ logger = logging.getLogger("roadmapiq")
 
 def migrate_sqlite_columns():
     """Ensure newly introduced columns exist in SQLite schema without data loss."""
+    if not str(engine.url).startswith("sqlite"):
+        return
     try:
         with engine.connect() as conn:
             # Check student_profiles columns

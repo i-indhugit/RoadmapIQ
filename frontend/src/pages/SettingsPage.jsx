@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { healthApi, aiApi, profileApi } from '../services/api';
+import { healthApi, aiApi, profileApi, API_BASE_URL } from '../services/api';
 import {
   Settings,
   Server,
@@ -58,7 +58,7 @@ const SettingsPage = () => {
   const [weeklyReviewAlerts, setWeeklyReviewAlerts] = useState(true);
   const [soundEffectsEnabled, setSoundEffectsEnabled] = useState(true);
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+  const apiBaseUrl = API_BASE_URL || '/api';
 
   const handleTestConnection = async () => {
     setTestingConnection(true);
