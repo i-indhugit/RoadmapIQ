@@ -186,6 +186,10 @@ def migrate_sqlite_columns():
 
 def init_db():
     """Synchronous database schema creation and seed verification with non-blocking cold start guard."""
+    if os.environ.get("VERCEL") or os.environ.get("SERVERLESS") or os.environ.get("SKIP_DB_INIT") == "1":
+        logger.info("Serverless environment detected (Vercel). Skipping startup synchronous init_db.")
+        return
+
     try:
         # If on PostgreSQL (Neon), enable pgvector extension if available
         if not str(engine.url).startswith("sqlite"):
