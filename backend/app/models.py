@@ -20,10 +20,26 @@ def utcnow():
     return datetime.now(timezone.utc)
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    display_name = Column(String(100), nullable=False, default="Student")
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_guest = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=utcnow, nullable=False)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
+
+    student_profile = relationship("StudentProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
 class StudentProfile(Base):
     __tablename__ = "student_profiles"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, unique=True, index=True)
     display_name = Column(String(100), nullable=False)
     education_level = Column(String(100), nullable=False)  # "Undergraduate - Final Year", "Pre-final Year", "Recent Graduate", "Self-Taught", etc.
     educational_field = Column(String(100), nullable=False, default="Engineering / Technology")  # "Commerce", "Arts & Humanities", "Business Administration", "Engineering / Technology", "Natural Sciences", "Other"
@@ -67,6 +83,7 @@ class StudentProfile(Base):
     created_at = Column(DateTime, default=utcnow, nullable=False)
     updated_at = Column(DateTime, default=utcnow, onupdate=utcnow, nullable=False)
 
+    user = relationship("User", back_populates="student_profile")
     target_role = relationship("CareerRole", back_populates="student_profiles")
     roadmaps = relationship("Roadmap", back_populates="student_profile", cascade="all, delete-orphan")
     snapshots = relationship("ProgressSnapshot", back_populates="student_profile", cascade="all, delete-orphan")

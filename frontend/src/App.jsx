@@ -8,6 +8,7 @@ import Breadcrumbs from './components/common/Breadcrumbs';
 import ToastContainer from './components/common/ToastContainer';
 import FloatingMentor from './components/common/FloatingMentor';
 import ServerStatusBanner from './components/common/ServerStatusBanner';
+import AuthModal from './components/common/AuthModal';
 
 // The Four Primary Consolidated Modules
 import DiscoverPage from './pages/DiscoverPage';
@@ -30,7 +31,7 @@ import LearningAssistantPage from './pages/LearningAssistantPage';
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { activeTheme } = useApp();
+  const { activeTheme, isAuthModalOpen, setIsAuthModalOpen } = useApp();
 
   return (
     <div
@@ -67,11 +68,11 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
 
-            {/* THE FOUR PRIMARY MODULES */}
+            {/* THE FOUR PRIMARY CONSOLIDATED MODULES */}
             <Route path="/discover" element={<DiscoverPage />} />
-            <Route path="/assess" element={<AssessPage />} />
             <Route path="/journey" element={<JourneyPage />} />
             <Route path="/growth" element={<GrowthPage />} />
+            <Route path="/mentor" element={<LearningAssistantPage />} />
 
             {/* Account & Career Info */}
             <Route path="/profile" element={<ProfilePage />} />
@@ -84,29 +85,34 @@ function App() {
             <Route path="/explore" element={<DiscoverPage />} />
             <Route path="/compare" element={<DiscoverPage />} />
 
-            {/* Backward-Compatible Route Aliases for Module 2: Assess */}
-            <Route path="/assessment" element={<AssessPage />} />
-            <Route path="/skill-gap" element={<AssessPage />} />
-            <Route path="/skill-analysis" element={<AssessPage />} />
-            <Route path="/reassessment" element={<AssessPage />} />
+            {/* Unblocked Assessment Routes (Direct Redirect to My Journey Roadmap) */}
+            <Route path="/assess" element={<Navigate to="/journey?tab=roadmap" replace />} />
+            <Route path="/assessment" element={<Navigate to="/journey?tab=roadmap" replace />} />
+            <Route path="/skill-gap" element={<Navigate to="/journey?tab=roadmap" replace />} />
+            <Route path="/skill-analysis" element={<Navigate to="/journey?tab=roadmap" replace />} />
+            <Route path="/reassessment" element={<Navigate to="/journey?tab=roadmap" replace />} />
 
-            {/* Backward-Compatible Route Aliases for Module 3: My Journey */}
+            {/* Backward-Compatible Route Aliases for Module 2: My Journey */}
             <Route path="/roadmap" element={<JourneyPage />} />
             <Route path="/planner" element={<JourneyPage />} />
             <Route path="/preparation" element={<JourneyPage />} />
             <Route path="/weekly-review" element={<JourneyPage />} />
 
-            {/* Backward-Compatible Route Aliases for Module 4: My Growth */}
+            {/* Backward-Compatible Route Aliases for Module 3: My Growth */}
             <Route path="/progress" element={<GrowthPage />} />
             <Route path="/skill-tree" element={<GrowthPage />} />
             <Route path="/portfolio" element={<GrowthPage />} />
             <Route path="/leaderboard" element={<GrowthPage />} />
 
+            {/* Backward-Compatible Route Aliases for Module 4: AI Mentor */}
+            <Route path="/assistant" element={<LearningAssistantPage />} />
+            <Route path="/learning-assistant" element={<LearningAssistantPage />} />
+            <Route path="/ai-mentor" element={<LearningAssistantPage />} />
+
             {/* Specialized Features */}
             <Route path="/resources" element={<ResourceLibraryPage />} />
             <Route path="/projects" element={<ProjectRecommendationsPage />} />
             <Route path="/interview" element={<InterviewPrepPage />} />
-            <Route path="/assistant" element={<LearningAssistantPage />} />
             <Route path="/arena" element={<CareerArenaPage />} />
             <Route path="/bosses" element={<BossBattlesPage />} />
 
@@ -121,6 +127,9 @@ function App() {
 
       {/* Global AI Career Mentor */}
       <FloatingMentor />
+
+      {/* Student Authentication Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
       {/* Global Notifications */}
       <ToastContainer />

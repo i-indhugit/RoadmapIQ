@@ -90,6 +90,12 @@ export default function DiscoverPage() {
   const [activatingRoleId, setActivatingRoleId] = useState(null);
   const [activateError, setActivateError] = useState(null);
 
+  // Preparation Duration & Target Confirmation Modal state
+  const [selectedRoleForDuration, setSelectedRoleForDuration] = useState(null);
+  const [chosenDurationWeeks, setChosenDurationWeeks] = useState(12);
+  const [chosenWeeklyHours, setChosenWeeklyHours] = useState(15);
+  const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
+
   // Initialize roles from allRoles or fetch
   useEffect(() => {
     if (allRoles && allRoles.length > 0) {
@@ -179,7 +185,38 @@ export default function DiscoverPage() {
     }
   };
 
-  // Switch Active Career Target
+  // Prompt duration selection when user clicks Set as Target
+  const promptCareerActivation = (role) => {
+    const roleObj = typeof role === 'object' ? role : (allRoles.find((r) => r.id === role) || roles.find((r) => r.id === role));
+    if (!roleObj) return;
+    setSelectedRoleForDuration(roleObj);
+    setIsDurationModalOpen(true);
+  };
+
+  const handleConfirmDurationAndActivate = async () => {
+    if (!selectedRoleForDuration || isSwitchingCareer) return;
+    setIsSavingTarget(true);
+    try {
+      await switchCareer(selectedRoleForDuration.id, {
+        durationWeeks: Number(chosenDurationWeeks),
+        weeklyHours: Number(chosenWeeklyHours),
+      });
+      triggerCelebration();
+      setIsDurationModalOpen(false);
+      addToast(
+        'success',
+        `Target locked: ${selectedRoleForDuration.title} (${chosenDurationWeeks} weeks). Interactive roadmap initialized!`,
+        'Target Saved'
+      );
+      navigate('/journey?tab=roadmap');
+    } catch (err) {
+      addToast('error', err.message || 'Could not save target career.', 'Target Selection Error');
+    } finally {
+      setIsSavingTarget(false);
+    }
+  };
+
+  // Switch Active Career Target directly
   const handleActivateCareer = async (roleId, customSettings = {}) => {
     if (!roleId || isSwitchingCareer) return;
     setActivatingRoleId(roleId);
@@ -187,7 +224,8 @@ export default function DiscoverPage() {
     try {
       await switchCareer(roleId, customSettings);
       triggerCelebration();
-      addToast('success', 'Active career target saved in Neon database! Your progress and roadmaps are synchronized.', 'Target Saved');
+      addToast('success', 'Active career target saved in database! Your interactive roadmap is ready.', 'Target Saved');
+      navigate('/journey?tab=roadmap');
       return true;
     } catch (err) {
       const msg = err.message || 'Could not save target career. Please check network connection and try again.';
@@ -218,8 +256,8 @@ export default function DiscoverPage() {
       });
 
       triggerCelebration();
-      addToast('success', `Target set to ${allRoles.find((r) => r.id === targetId)?.title || 'Selected Track'}. Ready for assessment!`, 'Target Locked');
-      navigate('/assess?tab=take');
+      addToast('success', `Target set to ${allRoles.find((r) => r.id === targetId)?.title || 'Selected Track'}. Generating your interactive roadmap!`, 'Target Locked');
+      navigate('/journey?tab=roadmap');
     } catch (err) {
       const msg = err.message || 'Failed to update target.';
       setActivateError(msg);
@@ -539,7 +577,7 @@ export default function DiscoverPage() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => handleActivateCareer(role.id)}
+                        onClick={() => promptCareerActivation(role)}
                         disabled={isSwitchingCareer}
                         className={`text-xs font-semibold flex items-center gap-1.5 transition-colors ${
                           activatingRoleId === role.id
@@ -632,7 +670,7 @@ export default function DiscoverPage() {
                   </div>
 
                   <button
-                    onClick={() => handleActivateCareer(sugg.id || sugg.role_id)}
+                    onClick={() => promptCareerActivation(sugg.id || sugg.role_id)}
                     disabled={isSwitchingCareer}
                     className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
@@ -769,7 +807,7 @@ export default function DiscoverPage() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => handleActivateCareer(c.id)}
+                            onClick={() => promptCareerActivation(c.id)}
                             className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors"
                           >
                             Set Target
@@ -869,10 +907,10 @@ export default function DiscoverPage() {
                     onChange={(e) => setTargetForm({ ...targetForm, durationWeeks: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-cyan-500"
                   >
-                    <option value={8}>8 Weeks (Intensive Bootcamp)</option>
-                    <option value={12}>12 Weeks (Standard Semester Track)</option>
-                    <option value={16}>16 Weeks (Comprehensive Preparation)</option>
-                    <option value={24}>24 Weeks (Foundational Deep Dive)</option>
+                    <option value={4}>1 Month (4 Weeks - Fast-Track Sprint)</option>
+                    <option value={12}>3 Months (12 Weeks - Standard Semester Track - Recommended)</option>
+                    <option value={24}>6 Months (24 Weeks - Comprehensive Mastery)</option>
+                    <option value={52}>12 Months (52 Weeks - Full Foundation to Placement)</option>
                   </select>
                 </div>
 
@@ -899,11 +937,11 @@ export default function DiscoverPage() {
                 className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
               >
                 {isSavingTarget ? (
-                  <span>Locking Target & Initializing Track...</span>
+                  <span>Locking Target & Generating Roadmap...</span>
                 ) : (
                   <>
                     <Target className="w-4 h-4" />
-                    <span>Lock Target Career & Proceed to Assessment &rarr;</span>
+                    <span>Lock Target Career & Generate Interactive Roadmap &rarr;</span>
                   </>
                 )}
               </button>
@@ -953,7 +991,7 @@ export default function DiscoverPage() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => handleActivateCareer(item.id)}
+                            onClick={() => promptCareerActivation(item.id)}
                             className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
                           >
                             <span>Switch to this Career</span>
@@ -1000,24 +1038,16 @@ export default function DiscoverPage() {
               ) : (
                 <button
                   type="button"
-                  onClick={async () => {
-                    const ok = await handleActivateCareer(selectedRoleForDetail.id);
-                    if (ok) setSelectedRoleForDetail(null);
+                  onClick={() => {
+                    const roleToActivate = selectedRoleForDetail;
+                    setSelectedRoleForDetail(null);
+                    promptCareerActivation(roleToActivate);
                   }}
                   disabled={isSwitchingCareer}
                   className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-cyan-500/20"
                 >
-                  {isSwitchingCareer && activatingRoleId === selectedRoleForDetail.id ? (
-                    <>
-                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
-                      <span>Saving Target...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Target className="w-3.5 h-3.5" />
-                      <span>Set as My Target</span>
-                    </>
-                  )}
+                  <Target className="w-3.5 h-3.5" />
+                  <span>Set as My Target</span>
                 </button>
               )}
             </div>
@@ -1082,12 +1112,118 @@ export default function DiscoverPage() {
         <CareerDiscoveryModal
           isOpen={isDiscoveryWizardOpen}
           onClose={() => setIsDiscoveryWizardOpen(false)}
+          onSelectCareer={(role) => promptCareerActivation(role)}
           onRecommendationsReady={(recs) => {
             setAiSuggestions(recs);
             setTab('suggestions');
             addToast('success', 'Generated personalized career recommendations based on your questionnaire!', 'AI Match Ready');
           }}
         />
+      )}
+
+      {/* Target Preparation Duration Modal */}
+      {isDurationModalOpen && selectedRoleForDuration && (
+        <Modal
+          isOpen={isDurationModalOpen}
+          onClose={() => setIsDurationModalOpen(false)}
+          title={`Set Target: ${selectedRoleForDuration.title}`}
+          maxWidth="max-w-lg"
+        >
+          <div className="space-y-5">
+            <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200">
+              <span className="font-bold text-white block mb-1">
+                Domain: {selectedRoleForDuration.domain || 'Professional Track'}
+              </span>
+              Select your preparation timeframe and weekly commitment. RoadmapIQ will generate your personalized interactive milestones and learning curriculum.
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-bold mb-2">
+                1. Preparation Duration
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { weeks: 4, label: '1 Month', sub: 'Fast-Track Sprint (4 Wks)' },
+                  { weeks: 12, label: '3 Months', sub: 'Semester Track (Recommended)', featured: true },
+                  { weeks: 24, label: '6 Months', sub: 'Comprehensive Mastery (24 Wks)' },
+                  { weeks: 52, label: '12 Months', sub: 'Foundation to Placement (52 Wks)' },
+                ].map((plan) => (
+                  <button
+                    key={plan.weeks}
+                    type="button"
+                    onClick={() => setChosenDurationWeeks(plan.weeks)}
+                    className={`p-3 rounded-xl border text-left transition-all relative ${
+                      chosenDurationWeeks === plan.weeks
+                        ? 'border-cyan-400 bg-cyan-500/15 shadow-md shadow-cyan-500/10'
+                        : 'border-slate-800 bg-slate-950/60 hover:border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {plan.featured && (
+                      <span className="absolute -top-2 right-2 px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider bg-cyan-500 text-slate-950">
+                        Popular
+                      </span>
+                    )}
+                    <span className="block text-sm font-bold text-white">{plan.label}</span>
+                    <span className="block text-[11px] text-slate-400 mt-0.5">{plan.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-bold mb-2">
+                2. Weekly Study Commitment
+              </label>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                {[
+                  { hours: 10, label: '10h/wk', sub: 'Casual' },
+                  { hours: 15, label: '15h/wk', sub: 'Standard' },
+                  { hours: 25, label: '25h/wk', sub: 'Intensive' },
+                  { hours: 35, label: '35h+/wk', sub: 'Full-time' },
+                ].map((item) => (
+                  <button
+                    key={item.hours}
+                    type="button"
+                    onClick={() => setChosenWeeklyHours(item.hours)}
+                    className={`py-2 px-1 rounded-xl border transition-all ${
+                      chosenWeeklyHours === item.hours
+                        ? 'border-cyan-400 bg-cyan-500/15 text-white'
+                        : 'border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="block text-xs font-bold">{item.label}</span>
+                    <span className="block text-[10px] text-slate-500">{item.sub}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-800 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDurationModalOpen(false)}
+                className="px-4 py-2 text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDurationAndActivate}
+                disabled={isSavingTarget}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-extrabold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isSavingTarget ? (
+                  <span>Generating Roadmap...</span>
+                ) : (
+                  <>
+                    <Target className="w-3.5 h-3.5" />
+                    <span>Confirm Target & Open Roadmap &rarr;</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

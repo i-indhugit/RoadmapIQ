@@ -44,9 +44,15 @@ const notifyColdStart = (detail) => {
   }
 };
 
-// Request interceptor to track retries
+// Request interceptor to track retries & attach JWT token
 apiClient.interceptors.request.use((config) => {
   config.__retryCount = config.__retryCount || 0;
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('roadmapiq_auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
   return config;
 });
 
@@ -110,6 +116,14 @@ apiClient.interceptors.response.use(
     return Promise.reject(customError);
   }
 );
+
+export const authApi = {
+  register: (data) => apiClient.post('/auth/register', data),
+  login: (data) => apiClient.post('/auth/login', data),
+  guest: (data) => apiClient.post('/auth/guest', data || {}),
+  getMe: () => apiClient.get('/auth/me'),
+  logout: () => apiClient.post('/auth/logout'),
+};
 
 export const healthApi = {
   check: () => apiClient.get('/health'),

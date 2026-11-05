@@ -118,11 +118,11 @@ export default function ReassessmentPage() {
         </div>
 
         <button
-          onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
+          onClick={() => navigate('/journey?tab=practice')}
           className="btn-primary text-xs py-2.5 px-4 flex items-center gap-2 self-start sm:self-auto shrink-0"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>Launch Reassessment Test</span>
+          <span>Practice Challenges</span>
         </button>
       </div>
 
@@ -167,10 +167,10 @@ export default function ReassessmentPage() {
                 <span className="text-white font-bold">{activeRole?.title || activeRoadmap?.role_title || 'Software Engineer'}</span>
               </div>
               <button
-                onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
+                onClick={() => navigate('/journey?tab=practice')}
                 className="btn-primary text-xs py-2 px-5 flex items-center gap-2"
               >
-                <span>Enter Test Suite</span>
+                <span>Enter Practice Challenges</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -251,10 +251,10 @@ export default function ReassessmentPage() {
                 You need at least 2 completed assessments to compare growth deltas side-by-side.
               </p>
               <button
-                onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
+                onClick={() => navigate('/journey?tab=practice')}
                 className="btn-primary text-xs py-2 px-4 inline-flex"
               >
-                Take Reassessment Now
+                Practice Skills Now
               </button>
             </div>
           )}
@@ -292,10 +292,10 @@ export default function ReassessmentPage() {
                     <span className="text-[10px] text-slate-500 block font-mono">Score</span>
                   </div>
                   <button
-                    onClick={() => navigate('/assessment')}
+                    onClick={() => navigate('/journey?tab=roadmap')}
                     className="btn-secondary text-xs py-1.5 px-3"
                   >
-                    View
+                    View in Roadmap
                   </button>
                 </div>
               </div>

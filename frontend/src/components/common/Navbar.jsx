@@ -12,12 +12,23 @@ import {
   Award,
   Flame,
   Shield,
-  Layers
+  Layers,
+  User,
 } from 'lucide-react';
 import Badge from './Badge';
 
 const Navbar = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
-  const { backendOnline, aiStatus, profile, activeRole, activeRoadmap, gamification, activeTheme } = useApp();
+  const {
+    backendOnline,
+    aiStatus,
+    profile,
+    activeRole,
+    activeRoadmap,
+    gamification,
+    activeTheme,
+    currentUser,
+    setIsAuthModalOpen,
+  } = useApp();
 
   const readinessScore = activeRoadmap?.readiness_score ?? (profile?.skills_assessment ? 45 : null);
 
@@ -164,6 +175,28 @@ const Navbar = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
               <Sparkles className="w-3 h-3 text-cyan-400" />
               <span>{aiStatus.available ? 'Gemini 2.5 AI' : 'Gemini Cloud AI'}</span>
             </div>
+          )}
+
+          {/* Student Account / Auth Button */}
+          {currentUser && !currentUser.is_guest ? (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-slate-700/80 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 transition-colors text-[11px] sm:text-xs font-medium"
+              title="Manage Student Account"
+            >
+              <div className="w-5 h-5 rounded-full bg-cyan-400 text-slate-950 font-bold flex items-center justify-center text-[10px]">
+                {(currentUser.display_name || currentUser.email).charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:inline max-w-[90px] truncate">{currentUser.display_name}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="btn-secondary text-[11px] sm:text-xs py-1 sm:py-1.5 px-2.5 sm:px-3 min-h-[34px] sm:min-h-[38px] flex items-center gap-1.5"
+            >
+              <User className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Sign In</span>
+            </button>
           )}
 
           {/* Quick Profile / CTA */}

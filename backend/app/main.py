@@ -16,6 +16,7 @@ from app.config import settings
 from app.database import Base, engine, SessionLocal
 from app.engine.seed_data import seed_database
 from app.api import (
+    auth,
     health,
     roles,
     skills,
@@ -73,6 +74,7 @@ def migrate_sqlite_columns():
                     ("avatar_style", "VARCHAR DEFAULT 'cyber_nomad'"),
                     ("avatar_checkpoint_id", "VARCHAR"),
                     ("journey_settings", "JSON DEFAULT '{}'"),
+                    ("user_id", "INTEGER"),
                 ]
                 for col_name, col_def in new_cols:
                     if col_name not in cols:
@@ -286,6 +288,7 @@ def root_ready(response: Response):
     return health.get_ready(response)
 
 # Mount all API routers under /api
+app.include_router(auth.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
 app.include_router(roles.router, prefix="/api")
 app.include_router(skills.router, prefix="/api")

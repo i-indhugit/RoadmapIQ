@@ -166,10 +166,10 @@ const LandingPage = () => {
       if (targetRole?.id) {
         await switchCareer(targetRole.id, { silent: true });
       }
-      navigate('/assessment');
+      navigate('/journey?tab=roadmap');
     } catch {
       // Fallback navigation
-      navigate('/assessment');
+      navigate('/journey?tab=roadmap');
     }
   };
 
@@ -374,11 +374,11 @@ const LandingPage = () => {
             </button>
 
             <button
-              onClick={() => navigate('/assessment')}
+              onClick={() => navigate('/discover')}
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs bg-navy-900 border border-slate-700 hover:border-cyan-400 text-white transition flex items-center justify-center gap-2 shadow-sm"
             >
-              <Award className="w-4 h-4 text-cyan-400" />
-              <span>Take Career Skill Assessment</span>
+              <Compass className="w-4 h-4 text-cyan-400" />
+              <span>Explore All 18 Domains (259+ Careers)</span>
             </button>
           </div>
 

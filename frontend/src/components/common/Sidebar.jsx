@@ -28,20 +28,7 @@ export const PRIMARY_MODULES = [
       { id: 'explore', label: 'Explore & Search (259+)', path: '/discover?tab=explore' },
       { id: 'suggestions', label: 'AI Career Matcher', path: '/discover?tab=suggestions' },
       { id: 'compare', label: 'Compare Careers', path: '/discover?tab=compare' },
-      { id: 'target', label: 'Set Target & Saved', path: '/discover?tab=target' },
-    ],
-  },
-  {
-    id: 'assess',
-    title: 'Assess',
-    basePath: '/assess',
-    altPaths: ['/assessment', '/skill-gap', '/skill-analysis', '/reassessment'],
-    icon: Award,
-    badge: 'Evaluation',
-    subOptions: [
-      { id: 'take', label: 'Take Assessment', path: '/assess?tab=take' },
-      { id: 'gaps', label: 'Skill Gaps & Readiness', path: '/assess?tab=gaps' },
-      { id: 'history', label: 'History & Reassessment', path: '/assess?tab=history' },
+      { id: 'target', label: 'Target Career & Duration', path: '/discover?tab=target' },
     ],
   },
   {
@@ -53,9 +40,9 @@ export const PRIMARY_MODULES = [
     badge: 'Curriculum',
     subOptions: [
       { id: 'roadmap', label: 'Interactive Roadmap', path: '/journey?tab=roadmap' },
-      { id: 'tasks', label: 'Daily Tasks & Schedule', path: '/journey?tab=tasks' },
+      { id: 'tasks', label: 'Daily Tasks & Workspace', path: '/journey?tab=tasks' },
       { id: 'review', label: 'Weekly Review', path: '/journey?tab=review' },
-      { id: 'practice', label: 'Practice & Challenges', path: '/journey?tab=practice' },
+      { id: 'practice', label: 'Projects & Practice', path: '/journey?tab=practice' },
     ],
   },
   {
@@ -70,6 +57,20 @@ export const PRIMARY_MODULES = [
       { id: 'tree', label: 'Visual Skill Tree', path: '/growth?tab=tree' },
       { id: 'activity', label: 'Activity & Streaks', path: '/growth?tab=activity' },
       { id: 'achievements', label: 'Achievements & Badges', path: '/growth?tab=achievements' },
+    ],
+  },
+  {
+    id: 'mentor',
+    title: 'AI Mentor',
+    basePath: '/mentor',
+    altPaths: ['/assistant', '/learning-assistant', '/ai-mentor'],
+    icon: Sparkles,
+    badge: 'Adaptive AI',
+    subOptions: [
+      { id: 'guidance', label: 'Real-Time Career Advice', path: '/mentor?tab=guidance' },
+      { id: 'concepts', label: 'Concept Deep Dives', path: '/mentor?tab=concepts' },
+      { id: 'gaps', label: 'Adaptive Recommendations', path: '/mentor?tab=gaps' },
+      { id: 'feedback', label: 'Study Pace & Feedback', path: '/mentor?tab=feedback' },
     ],
   },
 ];

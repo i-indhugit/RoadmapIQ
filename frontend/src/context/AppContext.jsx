@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import {
+  authApi,
   healthApi,
   rolesApi,
   skillsApi,
@@ -18,9 +19,12 @@ const STORAGE_KEYS = {
   PROFILE_ID: 'roadmapiq_profile_id',
   ROADMAP_ID: 'roadmapiq_roadmap_id',
   ROLE_ID: 'roadmapiq_role_id',
+  AUTH_TOKEN: 'roadmapiq_auth_token',
 };
 
 export const AppProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [profile, setProfile] = useState(null);
   const [activeRoadmap, setActiveRoadmap] = useState(null);
   const [activeRoadmapProgress, setActiveRoadmapProgress] = useState(null);
@@ -438,6 +442,74 @@ export const AppProvider = ({ children }) => {
     }
   }, [activeRoadmap, addToast]);
 
+  // Student Authentication Operations
+  const login = useCallback(async (email, password) => {
+    try {
+      const res = await authApi.login({ email, password });
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      setCurrentUser(res.user);
+      const prof = await refreshProfile();
+      if (prof?.target_role_id) {
+        await switchCareer(prof.target_role_id);
+      }
+      setIsAuthModalOpen(false);
+      addToast('success', `Welcome back, ${res.user.display_name}!`, 'Signed In');
+      return res;
+    } catch (err) {
+      addToast('error', err.message || 'Login failed', 'Authentication Error');
+      throw err;
+    }
+  }, [refreshProfile, switchCareer, addToast]);
+
+  const register = useCallback(async (email, password, displayName) => {
+    try {
+      const res = await authApi.register({ email, password, display_name: displayName });
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      setCurrentUser(res.user);
+      await refreshProfile();
+      setIsAuthModalOpen(false);
+      addToast('success', `Account created! Welcome, ${res.user.display_name}.`, 'Registration Complete');
+      return res;
+    } catch (err) {
+      addToast('error', err.message || 'Registration failed', 'Registration Error');
+      throw err;
+    }
+  }, [refreshProfile, addToast]);
+
+  const continueAsGuest = useCallback(async (displayName) => {
+    try {
+      const res = await authApi.guest({ display_name: displayName || 'Student Explorer' });
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      setCurrentUser(res.user);
+      await refreshProfile();
+      setIsAuthModalOpen(false);
+      addToast('info', 'Guest session activated. Your progress is saved in this browser.', 'Guest Session');
+      return res;
+    } catch (err) {
+      addToast('error', err.message || 'Guest session error', 'Guest Mode');
+      throw err;
+    }
+  }, [refreshProfile, addToast]);
+
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout().catch(() => null);
+    } finally {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.PROFILE_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROADMAP_ID);
+      const guestRes = await authApi.guest({ display_name: 'Student Explorer' }).catch(() => null);
+      if (guestRes) {
+        localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, guestRes.access_token);
+        setCurrentUser(guestRes.user);
+        await refreshProfile();
+      } else {
+        setCurrentUser(null);
+      }
+      addToast('info', 'You have been signed out.', 'Signed Out');
+    }
+  }, [refreshProfile, addToast]);
+
   // Initial startup synchronization
   useEffect(() => {
     let mounted = true;
@@ -445,6 +517,28 @@ export const AppProvider = ({ children }) => {
     const init = async () => {
       setIsInitializing(true);
       await checkHealth();
+
+      // Verify or establish isolated user session
+      let token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      if (token) {
+        try {
+          const userObj = await authApi.getMe();
+          if (mounted) setCurrentUser(userObj);
+        } catch {
+          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+          token = null;
+        }
+      }
+      if (!token) {
+        try {
+          const guestRes = await authApi.guest({ display_name: 'Student Explorer' });
+          localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, guestRes.access_token);
+          if (mounted) setCurrentUser(guestRes.user);
+        } catch (e) {
+          console.debug('Guest session establishment note:', e);
+        }
+      }
+
       const { roles } = await loadCatalogs();
       const loadedProf = await refreshProfile();
 
@@ -526,6 +620,14 @@ export const AppProvider = ({ children }) => {
   }, [profile?.target_role_id, allRoles, activeRole?.id]);
 
   const value = {
+    currentUser,
+    setCurrentUser,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    login,
+    register,
+    continueAsGuest,
+    logout,
     profile,
     setProfile,
     activeRoadmap,

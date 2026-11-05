@@ -117,15 +117,15 @@ export default function MyCareerPage() {
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
-              onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
+              onClick={() => navigate('/journey?tab=roadmap')}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition cursor-pointer"
             >
-              <Award className="w-4 h-4" />
-              <span>Verify Skills in Assessment</span>
+              <Map className="w-4 h-4" />
+              <span>Open Career Roadmap</span>
             </button>
 
             <Link
-              to="/discovery"
+              to="/discover"
               className="btn-secondary text-xs py-2.5 px-4 cursor-pointer"
             >
               Browse All Domains
@@ -391,10 +391,10 @@ export default function MyCareerPage() {
 
             <div className="pt-3 border-t border-slate-800 flex justify-end">
               <button
-                onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
+                onClick={() => navigate('/journey?tab=roadmap')}
                 className="btn-primary text-xs py-2 px-5 flex items-center gap-1.5"
               >
-                <span>Enter Assessment in {environment.environmentName}</span>
+                <span>Launch Interactive Curriculum</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

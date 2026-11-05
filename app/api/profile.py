@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import StudentProfile, CareerRole
+from app.models import StudentProfile, CareerRole, User
+from app.engine.auth_service import get_optional_current_user
 from app.schemas import (
     ProfileCreate,
     ProfileUpdate,
@@ -100,8 +101,38 @@ def create_profile(profile_in: ProfileCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/latest", response_model=ProfileResponse)
-def get_latest_profile(db: Session = Depends(get_db)):
-    """Fetch the most recently active or created student profile, auto-initializing if none exists."""
+def get_latest_profile(
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
+):
+    """Fetch the student profile for current user, or latest active profile, auto-initializing if none exists."""
+    if not isinstance(current_user, User):
+        current_user = None
+
+    profile = None
+    if current_user:
+        profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+        if not profile:
+            first_role = db.query(CareerRole).first()
+            profile = StudentProfile(
+                user_id=current_user.id,
+                display_name=current_user.display_name or "Future Professional",
+                education_level="Undergraduate - Final Year",
+                educational_field="Engineering / Technology",
+                degree_specialization="Computer Science",
+                current_status="student",
+                current_experience_level="Intermediate",
+                target_role_id=first_role.id if first_role else None,
+                weekly_study_hours=15,
+                target_duration_weeks=12,
+                preferred_learning_format="mixed",
+                skills_assessment={}
+            )
+            db.add(profile)
+            db.commit()
+            db.refresh(profile)
+        return format_profile_response(profile)
+
     profile = db.query(StudentProfile).order_by(StudentProfile.updated_at.desc()).first()
     if not profile:
         first_role = db.query(CareerRole).first()
@@ -125,15 +156,22 @@ def get_latest_profile(db: Session = Depends(get_db)):
 
 
 @router.post("/target", response_model=ProfileResponse)
-def set_target_career(req: SetTargetCareerRequest, db: Session = Depends(get_db)):
+def set_target_career(
+    req: SetTargetCareerRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_current_user),
+):
     """
     Sets the active target career for a student profile.
     - Validates that the target career exists in PostgreSQL/SQLite by role_id or slug.
-    - Resolves or creates the student profile.
+    - Resolves or creates the student profile bound to the user.
     - Atomically persists target_role_id, duration, hours, and goals in the database.
     - Pre-generates or restores the corresponding active career roadmap.
     - Returns the updated ProfileResponse with target_role.
     """
+    if not isinstance(current_user, User):
+        current_user = None
+
     role = None
     if req.role_id:
         role = db.query(CareerRole).filter(CareerRole.id == req.role_id).first()
@@ -147,13 +185,16 @@ def set_target_career(req: SetTargetCareerRequest, db: Session = Depends(get_db)
         )
 
     profile = None
-    if req.profile_id:
+    if current_user:
+        profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+    if not profile and req.profile_id:
         profile = db.query(StudentProfile).filter(StudentProfile.id == req.profile_id).first()
     if not profile:
         profile = db.query(StudentProfile).order_by(StudentProfile.updated_at.desc()).first()
     if not profile:
         profile = StudentProfile(
-            display_name="Future Professional",
+            user_id=current_user.id if current_user else None,
+            display_name=(current_user.display_name if current_user else None) or "Future Professional",
             education_level="Undergraduate - Final Year",
             educational_field=role.domain or "Engineering / Technology",
             degree_specialization="Professional Track",
@@ -168,6 +209,9 @@ def set_target_career(req: SetTargetCareerRequest, db: Session = Depends(get_db)
         db.add(profile)
         db.commit()
         db.refresh(profile)
+
+    if current_user and not profile.user_id:
+        profile.user_id = current_user.id
 
     profile.target_role_id = role.id
     if req.career_goals:

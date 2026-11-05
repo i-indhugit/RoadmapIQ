@@ -146,7 +146,7 @@ const CareerExplorerPage = () => {
 
   const handleStartAssessmentForRole = (role) => {
     setActiveRole(role);
-    navigate(`/assessment?career=${role.slug || role.id}`);
+    navigate('/journey?tab=roadmap');
   };
 
   const filteredRoles = roles.filter((role) => {

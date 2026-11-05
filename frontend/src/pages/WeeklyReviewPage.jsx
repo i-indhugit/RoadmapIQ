@@ -186,10 +186,10 @@ export default function WeeklyReviewPage() {
                 </p>
               </div>
               <button
-                onClick={() => navigate('/assessment')}
+                onClick={() => navigate('/journey?tab=practice')}
                 className="btn-primary text-xs py-2 px-4"
               >
-                Launch Assessment
+                Practice Challenges
               </button>
             </div>
 

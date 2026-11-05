@@ -12,6 +12,39 @@ class MessageResponse(BaseModel):
 
 
 # -------------------------------------------------------------
+# User Authentication & Accounts
+# -------------------------------------------------------------
+class UserRegisterRequest(BaseModel):
+    email: str = Field(..., description="Student email address")
+    password: str = Field(..., min_length=6, description="Password (min 6 characters)")
+    display_name: Optional[str] = Field("Student", description="Preferred display name")
+
+
+class UserLoginRequest(BaseModel):
+    email: str = Field(..., description="Student email address")
+    password: str = Field(..., description="Password")
+
+
+class UserGuestRequest(BaseModel):
+    display_name: Optional[str] = Field("Student Explorer", description="Guest display name")
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    display_name: str
+    is_guest: bool = False
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuthTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+# -------------------------------------------------------------
 # Skills & Prerequisites
 # -------------------------------------------------------------
 class SkillBase(BaseModel):

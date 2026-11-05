@@ -25,6 +25,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
     ]
 
+    # Authentication & Security
+    SECRET_KEY: str = "roadmapiq-super-secret-key-change-in-production-2026"
+    ACCESS_TOKEN_EXPIRE_DAYS: int = 30
+
     # Google Gemini API Settings (Cloud Only - No Local LLM)
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-2.5-flash"

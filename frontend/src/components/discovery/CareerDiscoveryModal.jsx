@@ -102,7 +102,7 @@ const FALLBACK_DISCOVERY_QUESTIONS = [
   },
 ];
 
-export default function CareerDiscoveryModal({ isOpen, onClose, onSelectCareer }) {
+export default function CareerDiscoveryModal({ isOpen, onClose, onSelectCareer, onRecommendationsReady }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [questions, setQuestions] = useState(FALLBACK_DISCOVERY_QUESTIONS);
   const [answers, setAnswers] = useState({
@@ -171,7 +171,11 @@ export default function CareerDiscoveryModal({ isOpen, onClose, onSelectCareer }
           current_education_level: 'Undergraduate',
         };
         const res = await discoveryApi.discover(payload);
-        setRecommendations(res.recommendations || []);
+        const recs = res.recommendations || [];
+        setRecommendations(recs);
+        if (typeof onRecommendationsReady === 'function') {
+          onRecommendationsReady(recs);
+        }
       } catch (err) {
         setErrorMsg(err.message || 'Could not compute career recommendations.');
       } finally {
