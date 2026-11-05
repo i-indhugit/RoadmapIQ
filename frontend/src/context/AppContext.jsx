@@ -103,8 +103,12 @@ export const AppProvider = ({ children }) => {
     try {
       await healthApi.check();
       setBackendOnline(true);
-      const ai = await aiApi.getStatus();
-      setAiStatus(ai);
+      try {
+        const ai = await aiApi.getStatus();
+        setAiStatus(ai);
+      } catch (aiErr) {
+        console.debug('AI status check deferred:', aiErr);
+      }
     } catch (err) {
       setBackendOnline(false);
       setAiStatus({
