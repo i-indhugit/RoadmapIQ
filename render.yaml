@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: roadmapiq
+    runtime: python
+    buildCommand: "pip install -r backend/requirements.txt && cd frontend && npm install && npm run build && cd .."
+    startCommand: "uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHONPATH
+        value: "backend"
+      - key: CORS_ORIGINS
+        value: '["*"]'
+      - key: APP_ENV
+        value: "production"

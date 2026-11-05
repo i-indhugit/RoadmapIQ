@@ -254,12 +254,41 @@ app.include_router(portfolio.router, prefix="/api")
 app.include_router(rag.router, prefix="/api")
 
 
-@app.get("/", include_in_schema=False)
-def root():
-    return {
-        "app": settings.APP_NAME,
-        "tagline": "Your Skills. Your Path. Your Future.",
-        "status": "online",
-        "documentation": "/docs",
-        "api_prefix": settings.API_V1_STR
-    }
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+# Check for production built frontend (Single-site unified deployment)
+candidates = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.getcwd(), "frontend", "dist")),
+    os.path.abspath(os.path.join(os.getcwd(), "dist")),
+]
+DIST_DIR = next((p for p in candidates if os.path.isdir(p)), None)
+
+if DIST_DIR:
+    assets_dir = os.path.join(DIST_DIR, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa_frontend(full_path: str):
+        # Serve exact file if exists (e.g. favicon.ico, vite.svg)
+        target_file = os.path.join(DIST_DIR, full_path)
+        if full_path and os.path.isfile(target_file):
+            return FileResponse(target_file)
+        # Fallback to index.html for client-side routing
+        index_file = os.path.join(DIST_DIR, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        return {"app": settings.APP_NAME, "status": "online"}
+else:
+    @app.get("/", include_in_schema=False)
+    def root():
+        return {
+            "app": settings.APP_NAME,
+            "tagline": "Your Skills. Your Path. Your Future.",
+            "status": "online",
+            "documentation": "/docs",
+            "api_prefix": settings.API_V1_STR
+        }

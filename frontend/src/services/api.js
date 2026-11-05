@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Centralized base URL configured through frontend environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+// Centralized base URL: uses full URL in local dev, relative /api in production on the same host
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

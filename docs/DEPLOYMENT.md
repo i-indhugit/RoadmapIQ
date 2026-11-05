@@ -1,139 +1,98 @@
-# RoadmapIQ Production & Deployment Guide
+# RoadmapIQ – Single-Website Free Deployment Guide
 
-This document outlines the deployment architecture, infrastructure requirements, and operational strategies for hosting **RoadmapIQ** in production.
-
----
-
-## 1. System Architecture Overview
-
-```mermaid
-flowchart LR
-    Browser["Client Web Browser\n(Desktop / Mobile)"]
-    CDN["Frontend Static CDN\n(Vercel / Netlify / Cloudflare)"]
-    API["FastAPI Backend Container\n(Uvicorn + Python 3.12)"]
-    DB[("Persistent SQLite DB\n/ Persistent Volume Mount")]
-    LLM["Local Ollama or Cloud LLM\n(GPU Instance / OpenAI-Compatible)"]
-
-    Browser -->|HTTPS / Assets| CDN
-    Browser -->|REST API Requests| API
-    API -->|SQLAlchemy ORM| DB
-    API -->|RAG Ingestion & Hybrid Retrieval| DB
-    API -->|Prompt & JSON Inference| LLM
-```
-
-RoadmapIQ is decoupled into three primary architectural tiers:
-1. **Frontend**: Static Single-Page Application (SPA) built with React 18, Vite, and Tailwind CSS.
-2. **Backend**: Asynchronous REST API service built with FastAPI, Pydantic v2, and the deterministic rule & DAG sequencing engines.
-3. **Data & AI Tier**: Persistent SQLite database storing curriculum requirements, student profiles, and progress snapshots; and an Ollama inference service providing local LLM intelligence with deterministic semantic fallbacks.
+Deploy **RoadmapIQ** (React Frontend + FastAPI Backend + Centralized RAG Knowledge Base + SQLite Database) on **ONE single website for 100% FREE** with:
+- **One single URL** (e.g. `https://roadmapiq.onrender.com` or `https://roadmapiq.koyeb.app`)
+- **Zero CORS issues** (Frontend and Backend run on the same domain)
+- **Automatic SSL / HTTPS**
+- **Unified routing**: `/` serves the React SPA, `/api/...` serves the backend API, `/docs` serves the interactive Swagger API documentation.
 
 ---
 
-## 2. Frontend Deployment
+## 🌟 Method 1: Render.com (Recommended – 100% Free, 3 Minutes)
 
-### Build Command & Output
-- **Build Command**: `cd frontend && npm run build`
-- **Output Directory**: `frontend/dist/`
-- **Configuration**: `frontend/vite.config.js`
+Render offers a 100% free Web Service tier connected directly to your GitHub repository.
 
-### Recommended Hosting Providers
-- **Vercel / Netlify**:
-  - Connect your Git repository.
-  - Set Root Directory: `frontend`
-  - Build Command: `npm run build`
-  - Output Directory: `dist`
-  - Single-Page Application rewrite rule: All paths `/*` route to `/index.html`.
-- **AWS S3 + CloudFront**:
-  - Upload `dist/` contents to an S3 bucket with static website hosting.
-  - Configure a CloudFront CDN distribution with custom 404 error page pointing to `/index.html` (HTTP 200) for client-side routing.
+### Step-by-Step Instructions:
 
-### Frontend Environment Variables
-| Variable | Default Value | Description |
-|---|---|---|
-| `VITE_API_BASE_URL` | `http://localhost:8000/api` | The public base URL of the FastAPI backend. Never put secrets or API keys in frontend variables. |
+1. **Sign in to Render**:
+   - Go to [render.com](https://render.com) and log in with your GitHub account.
 
----
+2. **Create New Web Service**:
+   - Click **New +** in the top navigation bar and select **Web Service**.
+   - Select **Build and deploy from a Git repository**.
+   - Connect and select your repository: **`i-indhugit/RoadmapIQ`**.
 
-## 3. Backend Deployment
+3. **Configure the Settings**:
+   - **Name**: `roadmapiq` (or any name you choose)
+   - **Region**: Choose the closest region (e.g. *Singapore* or *Frankfurt*)
+   - **Branch**: `main`
+   - **Root Directory**: *(Leave blank)*
+   - **Runtime**: **Python 3**
+   - **Build Command**:
+     ```bash
+     pip install -r backend/requirements.txt && cd frontend && npm install && npm run build && cd ..
+     ```
+   - **Start Command**:
+     ```bash
+     uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+     ```
+   - **Instance Type**: **Free** ($0/month)
 
-### Containerization (Dockerfile)
-To containerize the FastAPI service, create a `backend/Dockerfile`:
+4. **Environment Variables**:
+   Click **Advanced** $\rightarrow$ **Add Environment Variable**:
+   | Key | Value | Notes |
+   |---|---|---|
+   | `PYTHONPATH` | `backend` | Required for Python module imports |
+   | `CORS_ORIGINS` | `["*"]` | Allows web browser calls |
+   | `GEMINI_API_KEY` | *(Optional)* | Your Google Gemini API key if using cloud AI synthesis |
 
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python requirements
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Expose port
-EXPOSE 8000
-
-# Set environment
-ENV PYTHONPATH=/app
-
-# Run uvicorn server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Recommended Backend Hosting Providers
-- **Render / Railway / Fly.io**:
-  - Deploy the Docker container directly.
-  - Attach a **Persistent Disk** (e.g. at `/data`) so that `roadmapiq.db` is not erased across container restarts.
-  - Set `DATABASE_URL=sqlite:////data/roadmapiq.db`.
-- **AWS ECS / DigitalOcean App Platform**:
-  - Deploy as a containerized service with an attached volume for database persistence.
-
-### Backend Environment Variables
-| Variable | Default Value | Description |
-|---|---|---|
-| `DATABASE_URL` | `sqlite:///./roadmapiq.db` | SQLAlchemy connection URI. Supports SQLite locally and on persistent disks. |
-| `CORS_ORIGINS` | `["http://localhost:5173", ...]` | JSON list of allowed origins. In production, set to your production frontend domain (e.g. `["https://roadmapiq.yourdomain.com"]`). |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Base URL of the Ollama server. |
-| `OLLAMA_MODEL` | `llama3` | Configured model identifier. |
-| `OLLAMA_TIMEOUT_SECONDS` | `5.0` | Maximum seconds before graceful fallback to deterministic engine. |
-| `DEFAULT_AI_ENABLED` | `true` | Toggle for AI mentorship features. |
+5. **Deploy**:
+   - Click **Create Web Service**.
+   - Render will automatically install Python packages, build the React production bundle, and start the unified server.
+   - Once complete, you will receive your live URL: **`https://roadmapiq.onrender.com`**!
 
 ---
 
-## 4. Serving LLMs in Production: Local vs. Cloud
+## 🚀 Method 2: Hugging Face Spaces (100% Free Forever, 16 GB RAM, Never Sleeps!)
 
-> [!IMPORTANT]
-> A local Ollama process running on a laptop (`http://localhost:11434`) **cannot serve a public production website**, because public cloud servers cannot reach a personal machine without complex, fragile tunnels.
+Hugging Face Spaces provides a free Docker hosting environment with **16 GB RAM** and **2 vCPUs** that **never goes to sleep**.
 
-### Production AI Infrastructure Options:
+### Step-by-Step Instructions:
 
-1. **Dedicated GPU Cloud Instance with Ollama or vLLM**:
-   - Host Ollama or vLLM on a cloud GPU instance (e.g. AWS EC2 `g5.xlarge`, RunPod, Lambda Labs, or Hetzner).
-   - Pull the model: `ollama pull llama3`.
-   - Point your FastAPI container to the private internal IP: `OLLAMA_BASE_URL=http://<gpu-internal-ip>:11434`.
-
-2. **Self-Hosted Open-Weights Endpoint / Serverless API**:
-   - Use an OpenAI-compatible open-weights provider (e.g. Together AI, Groq, OpenRouter) running open-source models like Llama 3 or Mistral.
-   - Point the backend client to the endpoint URL.
-
-3. **Air-Gapped & Offline Fallback (Built-in)**:
-   - If the AI server is temporarily unreachable, RoadmapIQ's `ai_service.py` **automatically falls back** to its built-in Curriculum Intelligence engine with zero downtime. All deterministic calculations, gap analysis, topological sequencing, and RAG retrieval continue working normally.
+1. Go to [huggingface.co](https://huggingface.co) and sign in (or create a free account).
+2. Click your profile picture $\rightarrow$ **New Space**.
+3. Set:
+   - **Space name**: `RoadmapIQ`
+   - **License**: `mit`
+   - **Space SDK**: **Docker** $\rightarrow$ **Blank**
+   - **Visibility**: **Public**
+4. Click **Create Space**.
+5. Connect your GitHub repository or push this repository to your Hugging Face Space git remote:
+   ```bash
+   git remote add space https://huggingface.co/spaces/<your-username>/RoadmapIQ
+   git push space main
+   ```
+6. Hugging Face will automatically detect the root `Dockerfile`, build the React frontend and FastAPI backend, and give you a free, permanent URL (e.g. `https://<your-username>-roadmapiq.hf.space`)!
 
 ---
 
-## 5. Security & Production Hardening Checklist
+## ⚡ Method 3: Koyeb (100% Free Eco Tier – No Cold Start)
 
-1. **CORS Restrictions**:
-   - Restrict `CORS_ORIGINS` in production to only your official frontend domain. Never leave `*` wildcard in public deployments.
-2. **Database Backup**:
-   - For SQLite, schedule periodic automated snapshots using SQLite's online backup API or a cron job copying `/data/roadmapiq.db` to Amazon S3.
-3. **Graceful Degraded Mode**:
-   - Verify that all endpoints return HTTP 200/201 even when external AI models are offline, utilizing deterministic rule engines.
-4. **Rate Limiting**:
-   - Place a reverse proxy (Nginx or Cloudflare) in front of the backend to rate-limit `/api/ai/*` queries and prevent resource exhaustion.
+Koyeb provides a free Eco tier with fast NVMe and zero cold-start delay.
 
+1. Sign up at [koyeb.com](https://www.koyeb.com) using your GitHub account.
+2. Click **Create App** $\rightarrow$ **GitHub**.
+3. Select `i-indhugit/RoadmapIQ`.
+4. Choose **Dockerfile** deployment (it will automatically use the included `Dockerfile`).
+5. Select the **Free** instance type.
+6. Click **Deploy**. Your app will be live at `https://<your-app>.koyeb.app`.
+
+---
+
+## 🛠️ How It Works Under The Hood
+
+RoadmapIQ is engineered as a **unified Single-Page Application server**:
+1. When a user opens `https://your-app.onrender.com/`, FastAPI inspects the compiled `frontend/dist` directory and streams `index.html`.
+2. Any client-side route navigation (`/discover`, `/journey`, `/assess`, `/growth`) falls back to `index.html` so React Router handles navigation seamlessly without 404 errors.
+3. Static files (`/assets/*.js`, `/assets/*.css`) are mounted and cached by FastAPI.
+4. All API requests use relative paths (`/api/...`), completely eliminating CORS errors and separate server configurations.
