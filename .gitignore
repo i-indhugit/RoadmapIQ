@@ -21,7 +21,9 @@ env/
 *.sqlite3-*
 
 # Node / Frontend
+node_modules/
 frontend/node_modules/
+dist-api/
 .vite/
 npm-debug.log*
 yarn-debug.log*
