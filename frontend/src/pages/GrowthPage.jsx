@@ -352,7 +352,7 @@ export default function GrowthPage() {
                     : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
-                Verified by Assessment
+                Verified Skills
               </button>
               <button
                 onClick={() => setPortfolioFilter('needs_evidence')}
@@ -522,13 +522,13 @@ export default function GrowthPage() {
               <span>Earned RPG Badges & Milestones</span>
             </h2>
             <p className="text-xs text-slate-400">
-              Verified accomplishments unlocked through practical coding, streak milestones, and assessment growth.
+              Verified accomplishments unlocked through practical coding, streak milestones, and project growth.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
               {[
                 { name: 'First Mission Accomplished', desc: 'Completed your first learning milestone task', unlocked: true },
-                { name: 'Diagnostic Pioneer', desc: 'Completed a career technical assessment', unlocked: !!profile?.assessed_skills },
+                { name: 'Diagnostic Pioneer', desc: 'Active in skill practice and milestone challenges', unlocked: true },
                 { name: 'Week 1 Survivor', desc: 'Maintained a 7-day study streak', unlocked: currentDailyStreak >= 7 },
                 { name: 'Verified Portfolio Builder', desc: 'Submitted practical repository evidence', unlocked: (portfolioData?.skills || []).some((s) => s.evidence_link) },
                 { name: 'Level 5 Master', desc: 'Earned 1000+ total platform XP', unlocked: gamification.xp >= 1000 },

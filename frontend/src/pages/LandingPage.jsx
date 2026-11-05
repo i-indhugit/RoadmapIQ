@@ -166,10 +166,10 @@ const LandingPage = () => {
       if (targetRole?.id) {
         await switchCareer(targetRole.id, { silent: true });
       }
-      navigate('/assessment');
+      navigate('/journey?tab=roadmap');
     } catch {
       // Fallback navigation
-      navigate('/assessment');
+      navigate('/journey?tab=roadmap');
     }
   };
 
@@ -374,16 +374,16 @@ const LandingPage = () => {
             </button>
 
             <button
-              onClick={() => navigate('/assessment')}
+              onClick={() => navigate('/journey?tab=roadmap')}
               className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold text-xs bg-navy-900 border border-slate-700 hover:border-cyan-400 text-white transition flex items-center justify-center gap-2 shadow-sm"
             >
-              <Award className="w-4 h-4 text-cyan-400" />
-              <span>Take Career Skill Assessment</span>
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span>View Interactive Roadmap</span>
             </button>
           </div>
 
           <p className="text-[11px] text-slate-400">
-            Next: Take the competency skill test or configure your weekly study hours.
+            Next: Dive into your personalized 6-phase learning journey with AI Mentor guidance.
           </p>
         </div>
       </section>
@@ -470,9 +470,9 @@ const LandingPage = () => {
               <CheckCircle2 className="w-4 h-4" />
             </div>
             <div>
-              <strong className="text-white block mb-0.5">Assessed, Not Assumed</strong>
+              <strong className="text-white block mb-0.5">Structured & Personalized</strong>
               <p className="text-slate-400 leading-relaxed">
-                We never assume skills from academic degrees. Competency tests and self-reported ratings determine your genuine starting checkpoint.
+                Every roadmap is tailored directly to your target career with an interactive 6-phase curriculum and adaptive milestones.
               </p>
             </div>
           </div>

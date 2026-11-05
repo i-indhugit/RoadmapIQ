@@ -218,8 +218,8 @@ export default function DiscoverPage() {
       });
 
       triggerCelebration();
-      addToast('success', `Target set to ${allRoles.find((r) => r.id === targetId)?.title || 'Selected Track'}. Ready for assessment!`, 'Target Locked');
-      navigate('/assess?tab=take');
+      addToast('success', `Target set to ${allRoles.find((r) => r.id === targetId)?.title || 'Selected Track'}! Your personalized 6-phase roadmap is ready.`, 'Target Locked');
+      navigate('/journey?tab=roadmap');
     } catch (err) {
       const msg = err.message || 'Failed to update target.';
       setActivateError(msg);
@@ -903,7 +903,7 @@ export default function DiscoverPage() {
                 ) : (
                   <>
                     <Target className="w-4 h-4" />
-                    <span>Lock Target Career & Proceed to Assessment &rarr;</span>
+                    <span>Lock Target Career & Open My Roadmap &rarr;</span>
                   </>
                 )}
               </button>
@@ -1002,7 +1002,10 @@ export default function DiscoverPage() {
                   type="button"
                   onClick={async () => {
                     const ok = await handleActivateCareer(selectedRoleForDetail.id);
-                    if (ok) setSelectedRoleForDetail(null);
+                    if (ok) {
+                      setSelectedRoleForDetail(null);
+                      navigate('/journey?tab=roadmap');
+                    }
                   }}
                   disabled={isSwitchingCareer}
                   className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-cyan-500/20"

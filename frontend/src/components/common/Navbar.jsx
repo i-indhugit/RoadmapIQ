@@ -19,8 +19,6 @@ import Badge from './Badge';
 const Navbar = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
   const { backendOnline, aiStatus, profile, activeRole, activeRoadmap, gamification, activeTheme } = useApp();
 
-  const readinessScore = activeRoadmap?.readiness_score ?? (profile?.skills_assessment ? 45 : null);
-
   return (
     <header
       className="sticky top-0 z-40 w-full backdrop-blur-md border-b px-3 sm:px-6 py-2.5 sm:py-3.5 transition-colors duration-300 select-none"
@@ -91,20 +89,22 @@ const Navbar = ({ onMobileMenuToggle, isMobileMenuOpen }) => {
             </Link>
           )}
 
-          {readinessScore !== null && (
-            <div
-              className="flex items-center gap-2 px-3 py-1 rounded-full border text-xs"
+          {activeRoadmap && (
+            <Link
+              to="/journey?tab=roadmap"
+              className="flex items-center gap-2 px-3 py-1 rounded-full border text-xs hover:border-teal-500/50 transition-colors"
               style={{
                 backgroundColor: 'rgba(10, 15, 29, 0.7)',
                 borderColor: activeTheme?.palette?.cardBorder || 'rgba(51, 65, 85, 0.6)',
               }}
+              title="Open your personalized interactive roadmap"
             >
-              <Award className="w-3.5 h-3.5" style={{ color: activeTheme?.palette?.secondary || '#8b5cf6' }} />
-              <span className="text-slate-400">Readiness:</span>
-              <span className="font-semibold font-mono" style={{ color: activeTheme?.palette?.primary || '#00f0ff' }}>
-                {readinessScore}%
+              <Compass className="w-3.5 h-3.5 text-teal-400" />
+              <span className="text-slate-400">Roadmap:</span>
+              <span className="font-semibold font-mono text-teal-300">
+                {activeRoadmap.target_duration_weeks || 12} Wks
               </span>
-            </div>
+            </Link>
           )}
         </div>
 

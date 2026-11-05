@@ -603,13 +603,14 @@ def generate_universal_career_roadmap(
     db.add(roadmap)
     db.flush()
 
-    # 4. Generate Structured 5-Phase Tasks
+    # 4. Generate Structured 6-Phase Tasks (Universal Career Architecture)
     phases = [
-        {"num": 1, "name": "Phase 1: Foundations & Core Principles", "category": "LEARN", "quest": "skill_quest"},
-        {"num": 2, "name": "Phase 2: Technical Tools & Analytical Workflows", "category": "PRACTICE", "quest": "skill_quest"},
-        {"num": 3, "name": f"Phase 3: Advanced Competencies ({active_branch.replace('_', ' ').title()})", "category": "BUILD", "quest": "weekly_mission"},
-        {"num": 4, "name": "Phase 4: Practical Capstone Simulation", "category": "BUILD", "quest": "epic_project"},
-        {"num": 5, "name": "Phase 5: Professional Placement & Licensure Prep", "category": "PREPARE", "quest": "boss"},
+        {"num": 1, "name": "Phase 1: Foundation", "category": "LEARN", "quest": "skill_quest"},
+        {"num": 2, "name": "Phase 2: Core Knowledge", "category": "LEARN", "quest": "skill_quest"},
+        {"num": 3, "name": "Phase 3: Skill Development", "category": "PRACTICE", "quest": "skill_quest"},
+        {"num": 4, "name": "Phase 4: Practical Application", "category": "BUILD", "quest": "weekly_mission"},
+        {"num": 5, "name": f"Phase 5: Advanced Specialization ({active_branch.replace('_', ' ').title()})", "category": "BUILD", "quest": "epic_project"},
+        {"num": 6, "name": "Phase 6: Career Preparation", "category": "PREPARE", "quest": "boss"},
     ]
 
     total_tasks_needed = max(8, min(24, target_duration_weeks * 2))

@@ -144,9 +144,9 @@ const CareerExplorerPage = () => {
     }
   };
 
-  const handleStartAssessmentForRole = (role) => {
+  const handleOpenRoadmapForRole = (role) => {
     setActiveRole(role);
-    navigate(`/assessment?career=${role.slug || role.id}`);
+    navigate('/journey?tab=roadmap');
   };
 
   const filteredRoles = roles.filter((role) => {
@@ -389,10 +389,10 @@ const CareerExplorerPage = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleStartAssessmentForRole(role)}
+                      onClick={() => handleOpenRoadmapForRole(role)}
                       className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-1 border border-slate-700 transition"
                     >
-                      <span>Take Test</span>
+                      <span>Roadmap</span>
                       <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
                     </button>
                   </div>
@@ -496,10 +496,10 @@ const CareerExplorerPage = () => {
             <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => handleStartAssessmentForRole(selectedRoleDetail)}
+                onClick={() => handleOpenRoadmapForRole(selectedRoleDetail)}
                 className="btn-secondary text-xs px-4 py-2 flex items-center gap-1.5"
               >
-                <span>Take Custom Assessment</span>
+                <span>View Interactive Roadmap</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
 

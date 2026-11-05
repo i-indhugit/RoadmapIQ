@@ -6,16 +6,15 @@ const ROUTE_LABELS = {
   '': 'Dashboard',
   'dashboard': 'Dashboard',
   'discover': 'Discover',
-  'assess': 'Assess',
   'journey': 'My Journey',
   'growth': 'My Growth',
+  'learning-assistant': 'AI Mentor',
+  'assistant': 'AI Mentor',
+  'mentor': 'AI Mentor',
   'discovery': 'Discover',
   'careers': 'Discover',
   'explore': 'Discover',
   'my-career': 'My Career',
-  'assessment': 'Assess',
-  'skill-gap': 'Assess',
-  'skill-analysis': 'Assess',
   'roadmap': 'My Journey',
   'planner': 'My Journey',
   'preparation': 'My Journey',
@@ -24,8 +23,6 @@ const ROUTE_LABELS = {
   'progress': 'My Growth',
   'portfolio': 'My Growth',
   'weekly-review': 'My Journey',
-  'reassessment': 'Assess',
-  'assistant': 'AI Career Assistant',
   'profile': 'My Profile',
   'settings': 'Settings',
   'arena': 'My Journey',
@@ -40,9 +37,9 @@ const TAB_LABELS = {
   'suggestions': 'AI Career Matcher',
   'target': 'Set Target & Saved',
 
-  // Assess Module Tabs
-  'take': 'Take Assessment',
-  'gaps': 'Skill Gaps & Readiness',
+  // AI Mentor Module Tabs
+  'tutor': 'Curriculum AI Tutor',
+  'knowledge': 'RAG Knowledge Search',
 
   // My Journey Module Tabs
   'roadmap': 'Interactive Roadmap',
@@ -71,19 +68,6 @@ const TAB_LABELS = {
   'skills': 'Required Skills',
   'progression': 'Career Progression',
   'environment': 'Career Environment',
-
-  // Assessment
-  'config': 'Assessment Setup',
-  'testing': 'Active Assessment',
-  'history': 'Assessment History',
-
-  // Skill Analysis
-  'results': 'Assessment Results',
-  'strong': 'Strong Skills',
-  'developing': 'Developing Skills',
-  'weak': 'Weak Skills',
-  'missing': 'Missing Skills',
-  'readiness': 'Career Readiness',
 
   // Roadmap
   'phases': 'Learning Phases',

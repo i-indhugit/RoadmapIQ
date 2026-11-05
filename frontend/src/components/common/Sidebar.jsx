@@ -32,19 +32,6 @@ export const PRIMARY_MODULES = [
     ],
   },
   {
-    id: 'assess',
-    title: 'Assess',
-    basePath: '/assess',
-    altPaths: ['/assessment', '/skill-gap', '/skill-analysis', '/reassessment'],
-    icon: Award,
-    badge: 'Evaluation',
-    subOptions: [
-      { id: 'take', label: 'Take Assessment', path: '/assess?tab=take' },
-      { id: 'gaps', label: 'Skill Gaps & Readiness', path: '/assess?tab=gaps' },
-      { id: 'history', label: 'History & Reassessment', path: '/assess?tab=history' },
-    ],
-  },
-  {
     id: 'journey',
     title: 'My Journey',
     basePath: '/journey',
@@ -70,6 +57,19 @@ export const PRIMARY_MODULES = [
       { id: 'tree', label: 'Visual Skill Tree', path: '/growth?tab=tree' },
       { id: 'activity', label: 'Activity & Streaks', path: '/growth?tab=activity' },
       { id: 'achievements', label: 'Achievements & Badges', path: '/growth?tab=achievements' },
+    ],
+  },
+  {
+    id: 'mentor',
+    title: 'AI Mentor',
+    basePath: '/learning-assistant',
+    altPaths: ['/assistant', '/mentor'],
+    icon: Sparkles,
+    badge: '24/7 Grounded',
+    subOptions: [
+      { id: 'tutor', label: 'Curriculum AI Tutor', path: '/learning-assistant?tab=tutor' },
+      { id: 'knowledge', label: 'RAG Knowledge Search', path: '/learning-assistant?tab=knowledge' },
+      { id: 'interview', label: 'Mock Interview Simulator', path: '/interview' },
     ],
   },
 ];

@@ -506,11 +506,11 @@ const SkillTreePage = () => {
                   {/* Action CTAs */}
                   <div className="pt-2 space-y-2">
                     <Link
-                      to={`/assessment?skill=${selectedNode.slug}`}
+                      to="/journey?tab=roadmap"
                       className="w-full btn-primary text-xs py-2.5 flex items-center justify-center gap-2"
                     >
-                      <Award className="w-4 h-4" />
-                      <span>Take Diagnostic Quiz for this Skill</span>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Learn This Skill In Roadmap</span>
                     </Link>
 
                     {selectedNode.doc_url && (

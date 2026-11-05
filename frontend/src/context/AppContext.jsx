@@ -182,6 +182,27 @@ export const AppProvider = ({ children }) => {
         }
       }
 
+      // 3. Fall back: Auto-generate if user has target role but no roadmap yet (No assessment required)
+      if (!roadmapData && effectiveRoleId) {
+        try {
+          roadmapData = await roadmapsApi.switchCareer({
+            role_id: Number(effectiveRoleId),
+            profile_id: profile?.id || undefined,
+          });
+        } catch {
+          try {
+            roadmapData = await roadmapsApi.generate({
+              role_id: Number(effectiveRoleId),
+              profile_id: profile?.id || undefined,
+              target_duration_weeks: profile?.target_duration_weeks || 24,
+              weekly_hours: profile?.weekly_study_hours || 10,
+            });
+          } catch {
+            // continue
+          }
+        }
+      }
+
       if (roadmapData) {
         setActiveRoadmap(roadmapData);
         localStorage.setItem(STORAGE_KEYS.ROADMAP_ID, roadmapData.id.toString());

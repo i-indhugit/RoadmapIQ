@@ -3,9 +3,9 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Compass,
-  Award,
   Map,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -25,13 +25,6 @@ export const MOBILE_NAV_ITEMS = [
     altPaths: ['/discovery', '/careers', '/explore', '/compare'],
   },
   {
-    id: 'assess',
-    label: 'Assess',
-    path: '/assess',
-    icon: Award,
-    altPaths: ['/assessment', '/skill-gap', '/skill-analysis', '/reassessment'],
-  },
-  {
     id: 'journey',
     label: 'Journey',
     path: '/journey',
@@ -44,6 +37,13 @@ export const MOBILE_NAV_ITEMS = [
     path: '/growth',
     icon: TrendingUp,
     altPaths: ['/progress', '/skill-tree', '/portfolio', '/leaderboard'],
+  },
+  {
+    id: 'mentor',
+    label: 'AI Mentor',
+    path: '/learning-assistant',
+    icon: Sparkles,
+    altPaths: ['/assistant', '/mentor'],
   },
 ];
 
