@@ -40,3 +40,4 @@ EXPOSE 8000
 
 # Start Uvicorn bound to the environment-provided port (supports Render, Koyeb, Railway, HF Spaces)
 CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+

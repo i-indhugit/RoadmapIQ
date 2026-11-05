@@ -214,22 +214,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS
-origins = list(settings.CORS_ORIGINS)
-origins.extend([
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:4173",
-    "http://127.0.0.1:4173",
-])
-origins = list(set(origins))
-
+# Configure CORS: Allow Vercel frontend, localhost, and cloud origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
