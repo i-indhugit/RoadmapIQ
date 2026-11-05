@@ -1,0 +1,265 @@
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.database import Base, engine, SessionLocal
+from app.engine.seed_data import seed_database
+from app.api import (
+    health,
+    roles,
+    skills,
+    profile,
+    roadmaps,
+    tasks,
+    resources,
+    projects,
+    interview,
+    ai,
+    assessment,
+    gamification,
+    career_assessment,
+    discovery,
+    activities,
+    portfolio,
+    rag,
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("roadmapiq")
+
+
+def migrate_sqlite_columns():
+    """Ensure newly introduced columns exist in SQLite schema without data loss."""
+    try:
+        with engine.connect() as conn:
+            # Check student_profiles columns
+            res = conn.exec_driver_sql("PRAGMA table_info(student_profiles)").fetchall()
+            cols = {row[1] for row in res}
+            if cols:
+                new_cols = [
+                    ("xp", "INTEGER DEFAULT 100"),
+                    ("level", "INTEGER DEFAULT 1"),
+                    ("streak_days", "INTEGER DEFAULT 1"),
+                    ("longest_streak", "INTEGER DEFAULT 1"),
+                    ("last_active_date", "VARCHAR"),
+                    ("weekly_streak_count", "INTEGER DEFAULT 0"),
+                    ("longest_weekly_streak", "INTEGER DEFAULT 0"),
+                    ("weekly_goal_type", "VARCHAR DEFAULT 'days_per_week'"),
+                    ("weekly_goal_target", "INTEGER DEFAULT 5"),
+                    ("timezone", "VARCHAR DEFAULT 'UTC'"),
+                    ("educational_stream", "VARCHAR DEFAULT 'Engineering / Technology'"),
+                    ("graduation_status", "VARCHAR DEFAULT 'Pursuing'"),
+                    ("work_experience_years", "FLOAT DEFAULT 0.0"),
+                    ("areas_of_interest", "JSON DEFAULT '[]'"),
+                    ("preferred_learning_style", "VARCHAR DEFAULT 'visual_practical'"),
+                    ("career_goals", "TEXT"),
+                    ("badges", "JSON DEFAULT '[]'"),
+                    ("daily_challenge_completed_date", "VARCHAR"),
+                    ("leaderboard_opt_in", "INTEGER DEFAULT 1"),
+                    ("gamer_handle", "VARCHAR"),
+                    ("avatar_style", "VARCHAR DEFAULT 'cyber_nomad'"),
+                    ("avatar_checkpoint_id", "VARCHAR"),
+                    ("journey_settings", "JSON DEFAULT '{}'"),
+                ]
+                for col_name, col_def in new_cols:
+                    if col_name not in cols:
+                        try:
+                            conn.exec_driver_sql(f"ALTER TABLE student_profiles ADD COLUMN {col_name} {col_def}")
+                        except Exception as e:
+                            logger.warning(f"Column migration warning for student_profiles.{col_name}: {e}")
+
+            # Check roadmap_tasks columns
+            res_tasks = conn.exec_driver_sql("PRAGMA table_info(roadmap_tasks)").fetchall()
+            cols_tasks = {row[1] for row in res_tasks}
+            if cols_tasks:
+                new_task_cols = [
+                    ("xp_reward", "INTEGER DEFAULT 50"),
+                    ("mission_title", "VARCHAR"),
+                    ("quest_type", "VARCHAR DEFAULT 'skill_quest'"),
+                    ("day_of_week", "VARCHAR DEFAULT 'Monday'"),
+                    ("day_number", "INTEGER DEFAULT 1"),
+                    ("activity_category", "VARCHAR DEFAULT 'LEARN'"),
+                    ("practice_exercises", "JSON DEFAULT '[]'"),
+                    ("quiz_data", "JSON DEFAULT '[]'"),
+                    ("coding_challenge", "JSON DEFAULT 'null'"),
+                    ("activity_method", "VARCHAR DEFAULT 'theory'"),
+                    ("specialization_branch", "VARCHAR"),
+                    ("workspace_data", "JSON DEFAULT '{}'"),
+                ]
+                for col_name, col_def in new_task_cols:
+                    if col_name not in cols_tasks:
+                        try:
+                            conn.exec_driver_sql(f"ALTER TABLE roadmap_tasks ADD COLUMN {col_name} {col_def}")
+                        except Exception as e:
+                            logger.warning(f"Column migration warning for roadmap_tasks.{col_name}: {e}")
+
+            # Check career_roles columns
+            res_roles = conn.exec_driver_sql("PRAGMA table_info(career_roles)").fetchall()
+            cols_roles = {row[1] for row in res_roles}
+            if cols_roles:
+                new_role_cols = [
+                    ("domain", "VARCHAR DEFAULT 'Technology and IT'"),
+                    ("subdomain", "VARCHAR"),
+                    ("daily_responsibilities", "JSON DEFAULT '[]'"),
+                    ("required_education", "JSON DEFAULT '[]'"),
+                    ("eligibility_requirements", "TEXT"),
+                    ("optional_qualifications", "JSON DEFAULT '[]'"),
+                    ("preferred_skills", "JSON DEFAULT '[]'"),
+                    ("soft_skills", "JSON DEFAULT '[]'"),
+                    ("certifications_or_exams", "JSON DEFAULT '[]'"),
+                    ("career_progression", "JSON DEFAULT '[]'"),
+                    ("is_regulated_profession", "INTEGER DEFAULT 0"),
+                    ("regulatory_disclaimer", "TEXT"),
+                    ("tools_and_technologies", "JSON DEFAULT '[]'"),
+                    ("core_competencies", "JSON DEFAULT '[]'"),
+                    ("assessment_duration_mins", "INTEGER DEFAULT 30"),
+                    ("assessment_question_count", "INTEGER DEFAULT 25"),
+                    ("difficulty_distribution", "JSON DEFAULT '{}'"),
+                ]
+                for col_name, col_def in new_role_cols:
+                    if col_name not in cols_roles:
+                        try:
+                            conn.exec_driver_sql(f"ALTER TABLE career_roles ADD COLUMN {col_name} {col_def}")
+                        except Exception as e:
+                            logger.warning(f"Column migration warning for career_roles.{col_name}: {e}")
+
+            # Check learning_resources columns
+            res_res = conn.exec_driver_sql("PRAGMA table_info(learning_resources)").fetchall()
+            cols_res = {row[1] for row in res_res}
+            if cols_res:
+                new_res_cols = [
+                    ("career_domain", "VARCHAR"),
+                    ("topic", "VARCHAR"),
+                    ("estimated_duration", "VARCHAR"),
+                    ("last_verified_date", "VARCHAR"),
+                    ("language", "VARCHAR DEFAULT 'en'"),
+                    ("free_status", "VARCHAR DEFAULT '100% Free Access'"),
+                ]
+                for col_name, col_def in new_res_cols:
+                    if col_name not in cols_res:
+                        try:
+                            conn.exec_driver_sql(f"ALTER TABLE learning_resources ADD COLUMN {col_name} {col_def}")
+                        except Exception as e:
+                            logger.warning(f"Column migration warning for learning_resources.{col_name}: {e}")
+
+            # Check daily_activity_logs columns
+            res_act = conn.exec_driver_sql("PRAGMA table_info(daily_activity_logs)").fetchall()
+            cols_act = {row[1] for row in res_act}
+            if cols_act:
+                new_act_cols = [
+                    ("category", "VARCHAR DEFAULT 'learning'"),
+                    ("career_role_id", "INTEGER"),
+                    ("career_title", "VARCHAR"),
+                    ("score", "FLOAT"),
+                    ("score_total", "FLOAT"),
+                    ("duration_minutes", "INTEGER DEFAULT 30"),
+                    ("reference_type", "VARCHAR"),
+                    ("reference_id", "VARCHAR"),
+                    ("action_url", "VARCHAR"),
+                    ("idempotency_key", "VARCHAR"),
+                    ("extra_metadata", "JSON DEFAULT '{}'"),
+                ]
+                for col_name, col_def in new_act_cols:
+                    if col_name not in cols_act:
+                        try:
+                            conn.exec_driver_sql(f"ALTER TABLE daily_activity_logs ADD COLUMN {col_name} {col_def}")
+                        except Exception as e:
+                            logger.warning(f"Column migration warning for daily_activity_logs.{col_name}: {e}")
+
+            conn.commit()
+    except Exception as err:
+        logger.warning(f"Migration check error: {err}")
+
+
+def init_db():
+    """Synchronous database schema creation and seed verification."""
+    try:
+        Base.metadata.create_all(bind=engine)
+        migrate_sqlite_columns()
+        db = SessionLocal()
+        try:
+            seed_database(db)
+            from app.engine.seed_career_assessments import seed_career_assessments
+            seed_career_assessments(db)
+            from app.engine.seed_all_domain_careers import seed_all_domain_careers
+            seed_all_domain_careers(db)
+            from app.engine.seed_rag_knowledge import seed_rag_knowledge
+            seed_rag_knowledge(db)
+        finally:
+            db.close()
+        logger.info("RoadmapIQ database initialized successfully.")
+    except Exception as e:
+        logger.error(f"Error initializing RoadmapIQ database: {e}")
+
+
+# Initialize database schema and seeds
+init_db()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("RoadmapIQ backend service started.")
+    yield
+    logger.info("RoadmapIQ backend service stopped.")
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="Intelligent Skill Roadmap & Career Placement Generator Backend",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Configure CORS
+origins = list(settings.CORS_ORIGINS)
+origins.extend([
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+])
+origins = list(set(origins))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount all API routers under /api
+app.include_router(health.router, prefix="/api")
+app.include_router(roles.router, prefix="/api")
+app.include_router(skills.router, prefix="/api")
+app.include_router(profile.router, prefix="/api")
+app.include_router(roadmaps.router, prefix="/api")
+app.include_router(tasks.router, prefix="/api")
+app.include_router(resources.router, prefix="/api")
+app.include_router(projects.router, prefix="/api")
+app.include_router(interview.router, prefix="/api")
+app.include_router(assessment.router, prefix="/api")
+app.include_router(discovery.router, prefix="/api")
+app.include_router(career_assessment.router, prefix="/api")
+app.include_router(gamification.router, prefix="/api")
+app.include_router(ai.router, prefix="/api")
+app.include_router(activities.router, prefix="/api")
+app.include_router(portfolio.router, prefix="/api")
+app.include_router(rag.router, prefix="/api")
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return {
+        "app": settings.APP_NAME,
+        "tagline": "Your Skills. Your Path. Your Future.",
+        "status": "online",
+        "documentation": "/docs",
+        "api_prefix": settings.API_V1_STR
+    }
