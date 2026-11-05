@@ -3,10 +3,16 @@ services:
     name: roadmapiq
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers"
+    healthCheckPath: /health
     envVars:
-      - key: CORS_ORIGINS
-        value: '["*"]'
       - key: APP_ENV
         value: "production"
-
+      - key: CORS_ORIGINS
+        value: '["https://*.vercel.app","https://roadmap-iq.vercel.app","https://roadmapiq-2.onrender.com","http://localhost:5173"]'
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

@@ -1,18 +1,25 @@
 import axios from 'axios';
 
-// Centralized base URL: intelligent resolution for production, mobile LAN, and local dev
+// Centralized base URL: intelligent resolution for Vercel production, Render cloud, mobile LAN, and local dev
 const getBaseUrl = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  // 1. Explicit VITE_API_URL or VITE_API_BASE_URL environment variable takes highest priority
+  const envUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL;
+  if (envUrl) {
+    const trimmed = envUrl.trim().replace(/\/$/, '');
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
   }
-  // In production builds, always use relative /api on the current domain
+
+  // 2. In browser production builds
   if (typeof window !== 'undefined' && !import.meta.env.DEV) {
+    // If running on Vercel or cloud domain without env var, use relative /api (proxied via vercel.json)
     return '/api';
   }
-  // In local dev accessed via mobile LAN IP (e.g., 192.168.x.x:5173)
+
+  // 3. In local dev accessed via mobile LAN IP (e.g., 192.168.x.x:5173)
   if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     return `http://${window.location.hostname}:8000/api`;
   }
+
   return 'http://localhost:8000/api';
 };
 
@@ -20,27 +27,68 @@ export const API_BASE_URL = getBaseUrl();
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // 60s timeout accommodates free tier cold starts
+  timeout: 60000, // 60s timeout accommodates Render free tier cold starts
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Response interceptor with structured error extraction
+// Helper to notify UI of cold start wake-up state
+const notifyColdStart = (detail) => {
+  if (typeof window !== 'undefined' && window.dispatchEvent) {
+    try {
+      window.dispatchEvent(new CustomEvent('roadmapiq:coldstart', { detail }));
+    } catch {
+      // Ignore if event dispatch fails in test environments
+    }
+  }
+};
+
+// Request interceptor to track retries
+apiClient.interceptors.request.use((config) => {
+  config.__retryCount = config.__retryCount || 0;
+  return config;
+});
+
+// Response interceptor with structured error extraction & cold start automatic retry
 apiClient.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
+  (response) => {
+    // Notify UI that server is connected & responsive
+    notifyColdStart({ status: 'connected', url: response.config.url });
+    return response.data;
+  },
+  async (error) => {
+    const config = error.config;
+    const isNetworkOrTimeout = !error.response || error.code === 'ECONNABORTED';
+    const isServerWakingStatus = error.response && [502, 503, 504].includes(error.response.status);
+
+    // Identify cold-start candidate
+    const isColdStartCandidate = isNetworkOrTimeout || isServerWakingStatus;
+
+    if (config && isColdStartCandidate && config.__retryCount < 2) {
+      config.__retryCount += 1;
+      const delayMs = config.__retryCount === 1 ? 2500 : 4500;
+
+      notifyColdStart({
+        status: 'waking',
+        attempt: config.__retryCount,
+        maxAttempts: 2,
+        delayMs,
+        url: config.url
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      return apiClient(config);
+    }
+
     let friendlyMessage = 'An unexpected error occurred while communicating with RoadmapIQ.';
 
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       friendlyMessage = 'No internet connection detected on your device. Please verify your mobile or WiFi network.';
-    } else if (!error.response) {
-      if (error.code === 'ECONNABORTED') {
-        friendlyMessage = 'Request timed out. The RoadmapIQ server is waking up or taking longer to respond. Please retry.';
-      } else {
-        friendlyMessage = 'Unable to connect to RoadmapIQ backend. Please verify server connectivity at ' + API_BASE_URL;
-      }
-    } else {
+    } else if (isColdStartCandidate) {
+      notifyColdStart({ status: 'sleeping', url: config?.url });
+      friendlyMessage = 'RoadmapIQ cloud server is currently waking up from free-tier sleep. Please retry in a few seconds.';
+    } else if (error.response) {
       const data = error.response.data;
       if (data && data.detail) {
         if (typeof data.detail === 'string') {
@@ -65,6 +113,7 @@ apiClient.interceptors.response.use(
 
 export const healthApi = {
   check: () => apiClient.get('/health'),
+  ready: () => apiClient.get('/ready'),
 };
 
 export const rolesApi = {

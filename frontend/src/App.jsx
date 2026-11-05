@@ -7,6 +7,7 @@ import BottomNav from './components/common/BottomNav';
 import Breadcrumbs from './components/common/Breadcrumbs';
 import ToastContainer from './components/common/ToastContainer';
 import FloatingMentor from './components/common/FloatingMentor';
+import ServerStatusBanner from './components/common/ServerStatusBanner';
 
 // The Four Primary Consolidated Modules
 import DiscoverPage from './pages/DiscoverPage';
@@ -45,6 +46,9 @@ function App() {
         onMobileMenuToggle={() => setIsMobileMenuOpen((prev) => !prev)}
         isMobileMenuOpen={isMobileMenuOpen}
       />
+
+      {/* Free Tier Cold-Start & Connectivity Alert Banner */}
+      <ServerStatusBanner />
 
       {/* Main Layout Area */}
       <div className="flex-1 flex max-w-7xl w-full mx-auto">

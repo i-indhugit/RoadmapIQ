@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 
@@ -184,12 +185,30 @@ def migrate_sqlite_columns():
 
 
 def init_db():
-    """Synchronous database schema creation and seed verification."""
+    """Synchronous database schema creation and seed verification with non-blocking cold start guard."""
     try:
+        # If on PostgreSQL (Neon), enable pgvector extension if available
+        if not str(engine.url).startswith("sqlite"):
+            try:
+                from sqlalchemy import text
+                with engine.connect() as conn:
+                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                    conn.commit()
+                    logger.info("Neon pgvector extension verified.")
+            except Exception as e:
+                logger.warning(f"Note on pgvector extension: {e}")
+
         Base.metadata.create_all(bind=engine)
         migrate_sqlite_columns()
+
         db = SessionLocal()
         try:
+            from app.models import CareerRole
+            # Skip seeding if catalogue is already populated (avoids blocking Render cold starts)
+            if db.query(CareerRole).count() >= 250:
+                logger.info("Database catalogue already seeded with 250+ careers. Skipping startup seed.")
+                return
+
             seed_database(db)
             from app.engine.seed_career_assessments import seed_career_assessments
             seed_career_assessments(db)
@@ -197,11 +216,11 @@ def init_db():
             seed_all_domain_careers(db)
             from app.engine.seed_rag_knowledge import seed_rag_knowledge
             seed_rag_knowledge(db)
+            logger.info("RoadmapIQ database seeded successfully.")
         finally:
             db.close()
-        logger.info("RoadmapIQ database initialized successfully.")
     except Exception as e:
-        logger.error(f"Error initializing RoadmapIQ database: {e}")
+        logger.error(f"Error during RoadmapIQ database initialization: {e}")
 
 
 # Initialize database schema and seeds
@@ -224,14 +243,47 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS: Allow Vercel frontend, localhost, and cloud origins
+# Configure CORS: Allow Vercel frontend (*.vercel.app), Render, local dev with full credentials & standard methods
+cors_origins = list(settings.CORS_ORIGINS)
+env_cors = os.environ.get("CORS_ORIGINS")
+if env_cors:
+    try:
+        import json
+        parsed = json.loads(env_cors) if env_cors.startswith("[") else [o.strip() for o in env_cors.split(",")]
+        cors_origins.extend(parsed)
+    except Exception:
+        pass
+
+for default_origin in [
+    "https://roadmap-iq.vercel.app",
+    "https://roadmapiq-2.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]:
+    if default_origin not in cors_origins:
+        cors_origins.append(default_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https://.*\.vercel\.app$",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
+
+# Root level health & readiness probes for Render and cloud load balancers
+from fastapi import Response
+
+@app.get("/health", include_in_schema=False)
+def root_health():
+    return health.get_health()
+
+@app.get("/ready", include_in_schema=False)
+def root_ready(response: Response):
+    return health.get_ready(response)
 
 # Mount all API routers under /api
 app.include_router(health.router, prefix="/api")
