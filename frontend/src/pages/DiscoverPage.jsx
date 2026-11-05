@@ -87,6 +87,8 @@ export default function DiscoverPage() {
     weeklyHours: profile?.weekly_study_hours || 15,
   });
   const [isSavingTarget, setIsSavingTarget] = useState(false);
+  const [activatingRoleId, setActivatingRoleId] = useState(null);
+  const [activateError, setActivateError] = useState(null);
 
   // Initialize roles from allRoles or fetch
   useEffect(() => {
@@ -102,17 +104,32 @@ export default function DiscoverPage() {
     }
   }, [allRoles]);
 
-  // Load saved careers from profile or localStorage
+  // Load saved careers from backend profile or localStorage
   useEffect(() => {
-    const raw = localStorage.getItem('roadmapiq_saved_careers');
-    if (raw) {
-      try {
-        setSavedCareers(JSON.parse(raw));
-      } catch {
-        setSavedCareers([]);
+    const loadSaved = async () => {
+      if (profile?.id) {
+        try {
+          const remoteSaved = await profileApi.getSavedCareers(profile.id);
+          if (Array.isArray(remoteSaved) && remoteSaved.length > 0) {
+            setSavedCareers(remoteSaved);
+            localStorage.setItem('roadmapiq_saved_careers', JSON.stringify(remoteSaved));
+            return;
+          }
+        } catch {
+          // fallback to localStorage
+        }
       }
-    }
-  }, []);
+      const raw = localStorage.getItem('roadmapiq_saved_careers');
+      if (raw) {
+        try {
+          setSavedCareers(JSON.parse(raw));
+        } catch {
+          setSavedCareers([]);
+        }
+      }
+    };
+    loadSaved();
+  }, [profile?.id]);
 
   // Sync target form when activeRole changes
   useEffect(() => {
@@ -124,17 +141,24 @@ export default function DiscoverPage() {
     }
   }, [activeRole]);
 
-  // Toggle Save Career
-  const toggleSaveCareer = (role, e) => {
+  // Toggle Save Career (Persists to both Neon PostgreSQL and localStorage)
+  const toggleSaveCareer = async (role, e) => {
     if (e) e.stopPropagation();
     const isSaved = savedCareers.some((c) => c.id === role.id);
     let next;
     if (isSaved) {
       next = savedCareers.filter((c) => c.id !== role.id);
       addToast('info', `Removed ${role.title} from saved careers.`, 'Bookmark Updated');
+      if (profile?.id) {
+        profileApi.removeSavedCareer(profile.id, role.id).catch(() => null);
+      }
     } else {
-      next = [...savedCareers, { id: role.id, title: role.title, domain: role.domain, slug: role.slug }];
+      const item = { id: role.id, title: role.title, domain: role.domain, slug: role.slug };
+      next = [...savedCareers, item];
       addToast('success', `Saved ${role.title} to your career bookmarks!`, 'Career Bookmarked');
+      if (profile?.id) {
+        profileApi.saveCareer(profile.id, role.id).catch(() => null);
+      }
     }
     setSavedCareers(next);
     localStorage.setItem('roadmapiq_saved_careers', JSON.stringify(next));
@@ -157,12 +181,21 @@ export default function DiscoverPage() {
 
   // Switch Active Career Target
   const handleActivateCareer = async (roleId, customSettings = {}) => {
+    if (!roleId || isSwitchingCareer) return;
+    setActivatingRoleId(roleId);
+    setActivateError(null);
     try {
       await switchCareer(roleId, customSettings);
       triggerCelebration();
-      addToast('success', 'Active career track updated successfully! Your progress is fully preserved.', 'Career Activated');
+      addToast('success', 'Active career target saved in Neon database! Your progress and roadmaps are synchronized.', 'Target Saved');
+      return true;
     } catch (err) {
-      addToast('error', err.message || 'Could not switch career.', 'Error');
+      const msg = err.message || 'Could not save target career. Please check network connection and try again.';
+      setActivateError(msg);
+      addToast('error', msg, 'Target Selection Error');
+      return false;
+    } finally {
+      setActivatingRoleId(null);
     }
   };
 
@@ -174,46 +207,60 @@ export default function DiscoverPage() {
       return;
     }
     setIsSavingTarget(true);
+    setActivateError(null);
     try {
-      // 1. Switch career track
-      await switchCareer(Number(targetForm.targetRoleId));
-
-      // 2. Persist target goals & duration to profile
-      if (profile?.id) {
-        await profileApi.update(profile.id, {
-          target_role_id: Number(targetForm.targetRoleId),
-          career_goals: targetForm.goal,
-          target_duration_weeks: Number(targetForm.durationWeeks),
-          weekly_study_hours: Number(targetForm.weeklyHours),
-        });
-        setProfile((prev) => ({
-          ...prev,
-          target_role_id: Number(targetForm.targetRoleId),
-          career_goals: targetForm.goal,
-          target_duration_weeks: Number(targetForm.durationWeeks),
-          weekly_study_hours: Number(targetForm.weeklyHours),
-        }));
-      }
+      const targetId = Number(targetForm.targetRoleId);
+      // Persist target and options atomically
+      await switchCareer(targetId, {
+        careerGoals: targetForm.goal,
+        durationWeeks: Number(targetForm.durationWeeks),
+        weeklyHours: Number(targetForm.weeklyHours),
+      });
 
       triggerCelebration();
-      addToast('success', `Target set to ${allRoles.find((r) => r.id === Number(targetForm.targetRoleId))?.title || 'Selected Track'}. Ready for assessment!`, 'Target Locked');
+      addToast('success', `Target set to ${allRoles.find((r) => r.id === targetId)?.title || 'Selected Track'}. Ready for assessment!`, 'Target Locked');
       navigate('/assess?tab=take');
     } catch (err) {
-      addToast('error', err.message || 'Failed to update target.', 'Error');
+      const msg = err.message || 'Failed to update target.';
+      setActivateError(msg);
+      addToast('error', msg, 'Error');
     } finally {
       setIsSavingTarget(false);
     }
   };
 
-  // Filtered Roles
+  // Filtered Roles (Tokenized multi-word search matching across title, tools, description, domain, and slug)
   const filteredRoles = useMemo(() => {
     return roles.filter((role) => {
       const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        role.title?.toLowerCase().includes(q) ||
-        role.domain?.toLowerCase().includes(q) ||
-        role.description?.toLowerCase().includes(q);
+      const tokens = q.split(/\s+/).filter(Boolean);
+
+      const toolsText = Array.isArray(role.tools_and_technologies)
+        ? role.tools_and_technologies.join(' ')
+        : (role.tools || []).join(' ');
+      const skillsText = Array.isArray(role.skills)
+        ? role.skills.map((s) => (typeof s === 'string' ? s : s.name)).join(' ')
+        : '';
+      const competenciesText = Array.isArray(role.core_competencies)
+        ? role.core_competencies.join(' ')
+        : '';
+
+      const searchableHaystack = [
+        role.title || '',
+        role.domain || '',
+        role.subdomain || '',
+        role.category || '',
+        role.slug || '',
+        role.description || '',
+        role.short_summary || '',
+        toolsText,
+        skillsText,
+        competenciesText,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      const matchesSearch = tokens.length === 0 || tokens.every((token) => searchableHaystack.includes(token));
 
       const matchesDomain =
         selectedDomain === 'all' ||
@@ -494,10 +541,23 @@ export default function DiscoverPage() {
                       <button
                         onClick={() => handleActivateCareer(role.id)}
                         disabled={isSwitchingCareer}
-                        className="text-xs font-semibold text-slate-300 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                        className={`text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                          activatingRoleId === role.id
+                            ? 'text-cyan-400 animate-pulse'
+                            : 'text-slate-300 hover:text-cyan-300'
+                        } disabled:opacity-50 cursor-pointer`}
                       >
-                        <span>Set as Target</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        {activatingRoleId === role.id ? (
+                          <>
+                            <div className="w-3 h-3 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Set as Target</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </>
+                        )}
                       </button>
                     )}
 
@@ -573,10 +633,20 @@ export default function DiscoverPage() {
 
                   <button
                     onClick={() => handleActivateCareer(sugg.id || sugg.role_id)}
-                    className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                    disabled={isSwitchingCareer}
+                    className="w-full py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
-                    <span>Activate This Career Track</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    {isSwitchingCareer && activatingRoleId === (sugg.id || sugg.role_id) ? (
+                      <>
+                        <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                        <span>Saving Target in Database...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Activate This Career Track</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
                   </button>
                 </div>
               ))}
@@ -922,16 +992,47 @@ export default function DiscoverPage() {
                   Salary: {selectedRoleForDetail.salary_range || '₹8 LPA – ₹24 LPA'}
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  handleActivateCareer(selectedRoleForDetail.id);
-                  setSelectedRoleForDetail(null);
-                }}
-                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs"
-              >
-                Set as Target Track
-              </button>
+              {activeRole?.id === selectedRoleForDetail.id ? (
+                <div className="px-3.5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Current Target</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const ok = await handleActivateCareer(selectedRoleForDetail.id);
+                    if (ok) setSelectedRoleForDetail(null);
+                  }}
+                  disabled={isSwitchingCareer}
+                  className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-cyan-500/20"
+                >
+                  {isSwitchingCareer && activatingRoleId === selectedRoleForDetail.id ? (
+                    <>
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                      <span>Saving Target...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Target className="w-3.5 h-3.5" />
+                      <span>Set as My Target</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
+
+            {activateError && (
+              <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/50 text-red-200 text-xs flex items-center justify-between">
+                <span>{activateError}</span>
+                <button
+                  onClick={() => handleActivateCareer(selectedRoleForDetail.id)}
+                  className="ml-3 px-2 py-1 bg-red-500/20 hover:bg-red-500/40 rounded text-[11px] font-bold text-red-100"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
             <div className="space-y-2">
               <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">

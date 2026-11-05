@@ -90,6 +90,11 @@ export const profileApi = {
   getLatest: () => apiClient.get('/profile/latest'),
   get: (id) => apiClient.get(`/profile/${id}`),
   update: (id, data) => apiClient.put(`/profile/${id}`, data),
+  setTarget: (data) => apiClient.post('/profile/target', data),
+  setTargetForProfile: (profileId, data) => apiClient.post(`/profile/${profileId}/target`, data),
+  getSavedCareers: (profileId) => apiClient.get(`/profile/${profileId}/saved-careers`),
+  saveCareer: (profileId, roleId) => apiClient.post(`/profile/${profileId}/saved-careers`, { role_id: roleId }),
+  removeSavedCareer: (profileId, roleId) => apiClient.delete(`/profile/${profileId}/saved-careers/${roleId}`),
 };
 
 export const roadmapsApi = {

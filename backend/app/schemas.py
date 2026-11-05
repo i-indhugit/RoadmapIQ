@@ -153,6 +153,24 @@ class ProfileResponse(ProfileBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class SetTargetCareerRequest(BaseModel):
+    profile_id: Optional[int] = None
+    role_id: Optional[int] = None
+    career_slug: Optional[str] = None
+    career_goals: Optional[str] = None
+    target_duration_weeks: Optional[int] = 12
+    weekly_study_hours: Optional[int] = 15
+    preferred_learning_format: Optional[str] = "mixed"
+
+
+class SavedCareerItem(BaseModel):
+    id: int
+    title: str
+    domain: Optional[str] = None
+    slug: Optional[str] = None
+    saved_at: Optional[str] = None
+
+
 # -------------------------------------------------------------
 # Skill Gap Analysis
 # -------------------------------------------------------------

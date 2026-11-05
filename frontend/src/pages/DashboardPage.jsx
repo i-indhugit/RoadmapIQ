@@ -319,16 +319,17 @@ export default function DashboardPage() {
 
           {/* Quick Target Switcher */}
           <div className="pt-2 border-t border-slate-800/80">
-            <label className="text-[10px] font-mono uppercase text-slate-500 font-bold block mb-1">
-              Switch Active Target Track
+            <label className="text-[10px] font-mono uppercase text-slate-500 font-bold block mb-1 flex items-center justify-between">
+              <span>Switch Active Target Track</span>
+              {isSwitchingRole && <span className="text-cyan-400 font-normal lowercase animate-pulse">saving...</span>}
             </label>
             <select
               value={activeRole?.id || ''}
               onChange={(e) => handleQuickSwitchRole(e.target.value)}
               disabled={isSwitchingRole}
-              className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+              className="w-full py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 cursor-pointer disabled:opacity-50"
             >
-              {allRoles.slice(0, 15).map((r) => (
+              {allRoles.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.title}
                 </option>

@@ -242,31 +242,54 @@ export const AppProvider = ({ children }) => {
     }
 
     try {
-      // 3. Request backend switch: restores existing career roadmap if present, or generates new one
-      const newRoadmap = await roadmapsApi.switchCareer({
+      // 3. Persist target directly to backend profile in PostgreSQL
+      const profRes = await profileApi.setTarget({
         role_id: targetRoleId,
         profile_id: profile?.id || undefined,
+        career_goals: options.careerGoals || undefined,
+        target_duration_weeks: options.durationWeeks || undefined,
+        weekly_study_hours: options.weeklyHours || undefined,
+        preferred_learning_format: options.preferredFormat || undefined,
+      }).catch((err) => {
+        console.warn('Direct target endpoint note, falling back to roadmap switch:', err.message);
+        return null;
+      });
+
+      // 4. Request backend switch: restores existing career roadmap if present, or generates new one
+      const newRoadmap = await roadmapsApi.switchCareer({
+        role_id: targetRoleId,
+        profile_id: profRes?.id || profile?.id || undefined,
+        weekly_hours: options.weeklyHours || undefined,
+        target_duration_weeks: options.durationWeeks || undefined,
         force_regenerate: !!options.forceRegenerate,
       });
 
-      // 4. Stale response check: if user clicked another career while waiting, discard stale response
+      // 5. Stale response check: if user clicked another career while waiting, discard stale response
       if (currentSeq !== switchRequestSeq.current) {
         return null;
       }
 
-      // 5. Update state with returned roadmap data
+      // 6. Update state with returned roadmap & profile data
       setActiveRoadmap(newRoadmap);
       localStorage.setItem(STORAGE_KEYS.ROADMAP_ID, newRoadmap.id.toString());
       localStorage.setItem(STORAGE_KEYS.ROLE_ID, targetRoleId.toString());
-
-      setProfile((prev) => (prev ? { ...prev, target_role_id: targetRoleId } : prev));
-
-      // Synchronize student profile in backend
-      if (profile?.id) {
-        profileApi.update(profile.id, { target_role_id: targetRoleId }).catch(() => null);
+      if (newRoadmap.profile_id) {
+        localStorage.setItem(STORAGE_KEYS.PROFILE_ID, newRoadmap.profile_id.toString());
       }
 
-      // 6. Fetch progress breakdown for this roadmap
+      const definitiveProf = profRes || (await profileApi.get(newRoadmap.profile_id).catch(() => null));
+      if (definitiveProf) {
+        setProfile(definitiveProf);
+      } else {
+        setProfile((prev) => ({
+          ...(prev || {}),
+          id: newRoadmap.profile_id,
+          target_role_id: targetRoleId,
+          target_role: targetRole,
+        }));
+      }
+
+      // 7. Fetch progress breakdown for this roadmap
       const progressData = await roadmapsApi.getProgress(newRoadmap.id).catch(() => null);
       if (currentSeq === switchRequestSeq.current) {
         setActiveRoadmapProgress(progressData);
@@ -274,16 +297,16 @@ export const AppProvider = ({ children }) => {
 
       if (targetRole && !options.silent) {
         addToast(
-          'info',
-          `Target career set to ${targetRole.title}. Career roadmap, theme & milestones activated.`,
-          'Career Track Set'
+          'success',
+          `Target career set to ${targetRole.title}. Target and roadmap saved in database.`,
+          'Target Saved'
         );
       }
 
-      return newRoadmap;
+      return { roadmap: newRoadmap, profile: definitiveProf };
     } catch (err) {
       if (currentSeq === switchRequestSeq.current) {
-        addToast('error', err.message || 'Failed to set target career roadmap.', 'Career Switch Error');
+        addToast('error', err.message || 'Failed to set target career.', 'Target Selection Error');
       }
       throw err;
     } finally {
@@ -426,7 +449,18 @@ export const AppProvider = ({ children }) => {
       const loadedProf = await refreshProfile();
 
       const savedRoleId = localStorage.getItem(STORAGE_KEYS.ROLE_ID);
-      const targetRoleId = (savedRoleId ? parseInt(savedRoleId, 10) : null) || loadedProf?.target_role_id || (roles.length > 0 ? roles[0].id : null);
+      // Give precedence to the authoritative database profile target_role_id!
+      const targetRoleId =
+        loadedProf?.target_role_id ||
+        (savedRoleId ? parseInt(savedRoleId, 10) : null) ||
+        (roles.length > 0 ? roles[0].id : null);
+
+      if (loadedProf?.id) {
+        localStorage.setItem(STORAGE_KEYS.PROFILE_ID, loadedProf.id.toString());
+      }
+      if (targetRoleId) {
+        localStorage.setItem(STORAGE_KEYS.ROLE_ID, targetRoleId.toString());
+      }
 
       if (targetRoleId) {
         // Resolve target role and immediately apply its career theme
@@ -446,6 +480,13 @@ export const AppProvider = ({ children }) => {
             setActiveRoadmap(rm);
             localStorage.setItem(STORAGE_KEYS.ROADMAP_ID, rm.id.toString());
             localStorage.setItem(STORAGE_KEYS.ROLE_ID, targetRoleId.toString());
+            if (rm.profile_id) {
+              localStorage.setItem(STORAGE_KEYS.PROFILE_ID, rm.profile_id.toString());
+              if (!loadedProf) {
+                const freshP = await profileApi.get(rm.profile_id).catch(() => null);
+                if (mounted && freshP) setProfile(freshP);
+              }
+            }
 
             const prog = await roadmapsApi.getProgress(rm.id).catch(() => null);
             if (mounted && prog) setActiveRoadmapProgress(prog);
