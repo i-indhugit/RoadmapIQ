@@ -1,7 +1,22 @@
 import axios from 'axios';
 
-// Centralized base URL: uses full URL in local dev, relative /api in production on the same host
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
+// Centralized base URL: intelligent resolution for production, mobile LAN, and local dev
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  // In production builds, always use relative /api on the current domain
+  if (typeof window !== 'undefined' && !import.meta.env.DEV) {
+    return '/api';
+  }
+  // In local dev accessed via mobile LAN IP (e.g., 192.168.x.x:5173)
+  if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return `http://${window.location.hostname}:8000/api`;
+  }
+  return 'http://localhost:8000/api';
+};
+
+const API_BASE_URL = getBaseUrl();
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -17,11 +32,13 @@ apiClient.interceptors.response.use(
   (error) => {
     let friendlyMessage = 'An unexpected error occurred while communicating with RoadmapIQ.';
 
-    if (!error.response) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      friendlyMessage = 'No internet connection detected on your device. Please verify your mobile or WiFi network.';
+    } else if (!error.response) {
       if (error.code === 'ECONNABORTED') {
-        friendlyMessage = 'Request timed out. The RoadmapIQ server took too long to respond.';
+        friendlyMessage = 'Request timed out. The RoadmapIQ server is waking up or taking longer to respond. Please retry.';
       } else {
-        friendlyMessage = 'Unable to connect to RoadmapIQ backend. Please verify the FastAPI server is running at ' + API_BASE_URL;
+        friendlyMessage = 'Unable to connect to RoadmapIQ backend. Please verify server connectivity at ' + API_BASE_URL;
       }
     } else {
       const data = error.response.data;

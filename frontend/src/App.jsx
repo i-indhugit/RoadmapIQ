@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
+import BottomNav from './components/common/BottomNav';
 import Breadcrumbs from './components/common/Breadcrumbs';
 import ToastContainer from './components/common/ToastContainer';
 import FloatingMentor from './components/common/FloatingMentor';
@@ -54,7 +55,7 @@ function App() {
         />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 min-w-0 overflow-y-auto pb-24 md:pb-8">
           {/* Progressive Hierarchical Breadcrumb Navigation */}
           <Breadcrumbs />
 
@@ -110,6 +111,9 @@ function App() {
           </Routes>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation (Phones & Small Tablets) */}
+      <BottomNav />
 
       {/* Global AI Career Mentor */}
       <FloatingMentor />

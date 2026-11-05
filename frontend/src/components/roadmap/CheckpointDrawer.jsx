@@ -277,8 +277,9 @@ const CheckpointDrawer = ({
 
         <button
           onClick={onClose}
-          className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors shrink-0"
+          className="p-2 sm:p-2.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition-colors shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center active:scale-95"
           title="Close Workspace"
+          aria-label="Close Workspace"
         >
           <X className="w-5 h-5" />
         </button>
@@ -1101,8 +1102,11 @@ const CheckpointDrawer = ({
         )}
       </div>
 
-      {/* 4. Bottom Action Footer */}
-      <div className="p-4 sm:p-5 bg-navy-900/95 border-t border-slate-800 shrink-0 flex items-center justify-between gap-3">
+      {/* 4. Bottom Action Footer with Safe Area Padding */}
+      <div
+        className="p-3.5 sm:p-5 bg-navy-900/95 border-t border-slate-800 shrink-0 flex items-center justify-between gap-3"
+        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+      >
         {isCompleted ? (
           <div className="w-full flex items-center gap-2">
             <button

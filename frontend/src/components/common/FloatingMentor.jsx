@@ -187,32 +187,49 @@ const FloatingMentor = () => {
   };
 
   return (
-    <aside aria-label="AI Career Mentor" className="fixed bottom-6 right-6 z-50">
-      {/* Floating Trigger Button (when closed) */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="relative group flex items-center gap-3 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 text-slate-950 font-bold shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all duration-200"
-          aria-label="Open AI Career Mentor"
-        >
-          <div className="relative">
-            <Bot className="w-6 h-6 text-slate-950" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950 animate-pulse" />
-          </div>
-          <span className="text-sm tracking-wide hidden sm:inline">AI Mentor</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-950/20 text-slate-950 font-mono uppercase text-[10px]">
-            {currentModuleKey}
-          </span>
-        </button>
-      )}
-
-      {/* Expanded Chat Drawer */}
+    <>
+      {/* Mobile Backdrop when open */}
       {isOpen && (
         <div
-          className={`bg-slate-900 border border-cyan-500/30 rounded-2xl shadow-2xl flex flex-col transition-all duration-300 overflow-hidden ${
-            isMinimized ? 'w-80 h-14' : 'w-[90vw] sm:w-96 h-[520px] max-h-[85vh]'
-          }`}
-        >
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 sm:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        aria-label="AI Career Mentor"
+        className="fixed bottom-16 right-3 sm:bottom-6 sm:right-6 z-50 select-none"
+      >
+        {/* Floating Trigger Button (when closed) */}
+        {!isOpen && (
+          <button
+            onClick={() => setIsOpen(true)}
+            className="relative group flex items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 text-slate-950 font-bold shadow-xl shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105 active:scale-95 transition-all duration-200"
+            aria-label="Open AI Career Mentor"
+          >
+            <div className="relative">
+              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-slate-950" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950 animate-pulse" />
+            </div>
+            <span className="text-xs sm:text-sm tracking-wide hidden xs:inline font-extrabold">
+              AI Mentor
+            </span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-950/20 text-slate-950 font-mono uppercase hidden sm:inline">
+              {currentModuleKey}
+            </span>
+          </button>
+        )}
+
+        {/* Expanded Chat Drawer */}
+        {isOpen && (
+          <div
+            className={`bg-slate-900 border border-cyan-500/30 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col transition-all duration-300 overflow-hidden ${
+              isMinimized
+                ? 'w-72 sm:w-80 h-14'
+                : 'w-[calc(100vw-1.5rem)] sm:w-96 max-w-md h-[calc(100dvh-6rem)] sm:h-[540px] max-h-[640px]'
+            }`}
+          >
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -377,6 +394,7 @@ const FloatingMentor = () => {
         onClose={() => setAdminModalOpen(false)}
       />
     </aside>
+    </>
   );
 };
 

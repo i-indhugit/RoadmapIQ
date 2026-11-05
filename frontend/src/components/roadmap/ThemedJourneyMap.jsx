@@ -73,6 +73,49 @@ const ThemedJourneyMap = ({
     typeof window !== 'undefined' ? window.innerWidth < 640 : false
   );
 
+  // Touch gesture support: Pinch-to-zoom & smooth touch pan
+  const touchDistRef = useRef(null);
+  const initialZoomRef = useRef(zoomLevel);
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchDistRef.current = dist;
+      initialZoomRef.current = zoomLevel;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && touchDistRef.current) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / touchDistRef.current;
+      const next = Math.min(1.5, Math.max(0.6, Number((initialZoomRef.current * factor).toFixed(2))));
+      setZoomLevel(next);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchDistRef.current = null;
+  };
+
+  // Smart Fit-to-Screen handler adapting automatically to current device width
+  const handleFitToScreen = () => {
+    if (containerRef.current) {
+      const w = containerRef.current.clientWidth;
+      // Coordinate system scales based on ~760px effective road width
+      const fitZoom = Math.min(1.0, Math.max(0.65, Number((w / 760).toFixed(2))));
+      setZoomLevel(fitZoom);
+    } else {
+      setZoomLevel(isMobile ? 0.8 : 1);
+    }
+  };
+
   // Handle Full-Screen Toggling (with Browser Fullscreen API & graceful fallback)
   const handleToggleFullScreen = async () => {
     const nextState = !isFullScreen;
@@ -644,29 +687,32 @@ const ThemedJourneyMap = ({
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
-          {/* Zoom Controls */}
-          <div className="flex items-center rounded-xl bg-navy-800 border border-slate-700 overflow-hidden">
+          {/* Zoom & Fit-to-Screen Controls */}
+          <div className="flex items-center rounded-xl bg-navy-800 border border-slate-700 overflow-hidden shadow-sm">
             <button
               onClick={() => setZoomLevel((z) => Math.max(0.65, Number((z - 0.15).toFixed(2))))}
-              className="p-1.5 sm:p-2 hover:bg-slate-700 text-slate-300"
+              className="p-1.5 sm:p-2 hover:bg-slate-700 text-slate-300 active:scale-95 transition-transform"
               title="Zoom Out"
+              aria-label="Zoom Out"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="px-1.5 sm:px-2 text-[10px] font-mono text-slate-400">
+            <span className="px-1 sm:px-2 text-[10px] font-mono text-slate-400 min-w-[34px] text-center">
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={() => setZoomLevel((z) => Math.min(1.4, Number((z + 0.15).toFixed(2))))}
-              className="p-1.5 sm:p-2 hover:bg-slate-700 text-slate-300"
+              className="p-1.5 sm:p-2 hover:bg-slate-700 text-slate-300 active:scale-95 transition-transform"
               title="Zoom In"
+              aria-label="Zoom In"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setZoomLevel(1)}
-              className="hidden sm:inline-block px-2 py-1 text-[10px] font-mono text-brand-cyan hover:bg-slate-700 border-l border-slate-700"
-              title="Reset Zoom to 100%"
+              onClick={handleFitToScreen}
+              className="px-2 py-1.5 text-[10px] font-mono font-bold text-brand-cyan hover:bg-slate-700 border-l border-slate-700 active:scale-95 transition-all"
+              title="Fit Roadmap to Screen Viewport"
+              aria-label="Fit to Screen"
             >
               Fit
             </button>
@@ -811,7 +857,11 @@ const ThemedJourneyMap = ({
           MAIN INTERACTIVE ROADMAP CANVAS (RESPONSIVE VIEWPORT & PRESERVED ZOOM)
          ========================================================================= */}
       <div
-        className={`relative w-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 select-none ${
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`relative w-full overflow-x-auto overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 select-none touch-pan-x touch-pan-y ${
           isFullScreen ? 'flex-1' : 'max-h-[800px]'
         }`}
       >

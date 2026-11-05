@@ -746,15 +746,21 @@ def submit_skill_evidence(profile_id: int, req: EvidenceSubmitRequest, db: Sessi
             extra_metadata={"evidence_url": req.evidence_url, "notes": req.notes}
         )
     except Exception:
-        profile.xp = (profile.xp or 100) + xp_to_award
-        db.add(XPTransaction(
-            profile_id=profile.id,
-            amount=xp_to_award,
-            source_type="skill_evidence_submission",
-            source_id=f"evidence_{req.skill_slug}_{today_str}",
-            description=f"Submitted practical evidence artifact for {skill.name}"
-        ))
-        db.commit()
+        existing_tx = db.query(XPTransaction).filter(
+            XPTransaction.profile_id == profile.id,
+            XPTransaction.source_type == "skill_evidence_submission",
+            XPTransaction.source_id == f"evidence_{req.skill_slug}_{today_str}"
+        ).first()
+        if not existing_tx:
+            profile.xp = (profile.xp or 100) + xp_to_award
+            db.add(XPTransaction(
+                profile_id=profile.id,
+                amount=xp_to_award,
+                source_type="skill_evidence_submission",
+                source_id=f"evidence_{req.skill_slug}_{today_str}",
+                description=f"Submitted practical evidence artifact for {skill.name}"
+            ))
+            db.commit()
     db.refresh(profile)
 
     return {

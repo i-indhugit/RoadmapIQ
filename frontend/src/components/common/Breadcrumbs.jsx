@@ -155,8 +155,8 @@ export default function Breadcrumbs() {
   const subLabel = currentTab ? TAB_LABELS[currentTab] || currentTab.charAt(0).toUpperCase() + currentTab.slice(1) : null;
 
   return (
-    <nav className="flex items-center justify-between gap-3 text-xs mb-6 px-1 animate-fadeIn" aria-label="Breadcrumb">
-      <div className="flex items-center gap-1.5 text-slate-400 flex-wrap">
+    <nav className="flex items-center justify-between gap-2 text-xs mb-4 sm:mb-6 px-1 animate-fadeIn overflow-x-auto scrollbar-none" aria-label="Breadcrumb">
+      <div className="flex items-center gap-1.5 text-slate-400 flex-nowrap sm:flex-wrap shrink-0">
         {/* Home / Dashboard link */}
         <Link
           to="/dashboard"

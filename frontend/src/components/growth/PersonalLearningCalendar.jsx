@@ -248,8 +248,8 @@ export default function PersonalLearningCalendar({ profile }) {
         {/* ══ LEFT: Calendar + Filters ══════════════════════════════════════ */}
         <div className="xl:col-span-2 space-y-4">
 
-          {/* Category filter pills */}
-          <div className="flex flex-wrap gap-2">
+          {/* Category filter pills: Horizontal scroll on mobile, wrap on tablet/desktop */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 sm:flex-wrap scrollbar-none">
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
               const active = selectedCat === cat.id;
@@ -257,14 +257,14 @@ export default function PersonalLearningCalendar({ profile }) {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCat(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all border shrink-0 ${
                     active
                       ? `${cat.bg} ${cat.text} ${cat.border}`
                       : 'bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300 hover:border-slate-700'
                   }`}
                 >
                   <Icon className="w-3 h-3" />
-                  {cat.label}
+                  <span>{cat.label}</span>
                 </button>
               );
             })}
@@ -319,7 +319,7 @@ export default function PersonalLearningCalendar({ profile }) {
                       onClick={() => !isFuture && setSelectedDate(cell.dateStr)}
                       disabled={isFuture}
                       title={`${cell.dateStr}: ${cell.activities_count || 0} activities · ${(cell.hours_spent || 0).toFixed(1)} hrs`}
-                      className={`relative flex flex-col items-center justify-start pt-1.5 h-14 rounded-lg transition-all border-2 text-[11px] font-semibold
+                      className={`relative flex flex-col items-center justify-start pt-1 sm:pt-1.5 h-11 sm:h-14 rounded-lg transition-all border sm:border-2 text-[10px] sm:text-[11px] font-semibold
                         ${isSelected
                           ? 'border-cyan-400 bg-cyan-900/50 text-white scale-105 shadow-lg shadow-cyan-900/20'
                           : isToday

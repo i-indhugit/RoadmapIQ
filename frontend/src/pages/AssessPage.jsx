@@ -577,14 +577,14 @@ export default function AssessPage() {
             </div>
           ) : (
             /* Active Distraction-Free Test Interface */
-            <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/95 border border-indigo-500/40 shadow-2xl space-y-6">
+            <div className="p-3.5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/95 border border-indigo-500/40 shadow-2xl space-y-5 sm:space-y-6">
               {/* Header Bar: Progress, Timer, Flags */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-slate-400">
-                    Question <strong className="text-white">{currentIdx + 1}</strong> of {questions.length}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 pb-3.5 border-b border-slate-800">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-[11px] sm:text-xs font-mono text-slate-400">
+                    Q<strong className="text-white text-xs sm:text-sm ml-0.5">{currentIdx + 1}</strong>/{questions.length}
                   </span>
-                  <div className="w-32 bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div className="w-20 sm:w-32 bg-slate-800 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-indigo-500 h-full transition-all duration-300"
                       style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
@@ -592,9 +592,9 @@ export default function AssessPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 sm:gap-3">
                   {/* Timer Badge */}
-                  <div className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold flex items-center gap-1.5 border ${
+                  <div className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl font-mono text-[11px] sm:text-xs font-bold flex items-center gap-1.5 border ${
                     timeRemainingSecs < 180
                       ? 'bg-red-500/20 text-red-300 border-red-500/50 animate-pulse'
                       : 'bg-slate-950 text-indigo-300 border-indigo-500/30'
@@ -605,21 +605,22 @@ export default function AssessPage() {
 
                   <button
                     onClick={() => toggleFlagQuestion(currentQ?.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono flex items-center gap-1.5 border transition-all ${
+                    className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-mono flex items-center gap-1 border transition-all ${
                       reviewFlags.includes(currentQ?.id)
                         ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
                         : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
                     }`}
+                    title="Flag question for review"
                   >
-                    <Flag className="w-3.5 h-3.5" />
-                    <span>Flag</span>
+                    <Flag className="w-3 h-3" />
+                    <span className="hidden xs:inline">Flag</span>
                   </button>
 
                   <button
                     onClick={() => setShowConfirmSubmit(true)}
-                    className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors"
+                    className="px-3 sm:px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shrink-0"
                   >
-                    Finish Test ({answeredCount}/{questions.length})
+                    Submit ({answeredCount}/{questions.length})
                   </button>
                 </div>
               </div>
@@ -650,17 +651,17 @@ export default function AssessPage() {
                   )}
 
                   {/* Options */}
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 sm:space-y-3">
                     {Object.entries(currentQ.options || {}).map(([key, val]) => {
                       const isSelected = answers[currentQ.id] === key;
                       return (
                         <button
                           key={key}
                           onClick={() => handleSelectOption(currentQ.id, key)}
-                          className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-3 ${
+                          className={`w-full text-left p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all flex items-start gap-3 min-h-[48px] active:scale-[0.99] ${
                             isSelected
-                              ? 'bg-indigo-950/40 border-indigo-500 text-white shadow-md ring-1 ring-indigo-500/50'
-                              : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700'
+                              ? 'bg-indigo-950/50 border-indigo-500 text-white shadow-md ring-1 ring-indigo-500/50'
+                              : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 active:bg-slate-900'
                           }`}
                         >
                           <span
@@ -679,18 +680,18 @@ export default function AssessPage() {
               )}
 
               {/* Navigation Controls */}
-              <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-4 border-t border-slate-800 gap-2">
                 <button
                   onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))}
                   disabled={currentIdx === 0}
-                  className="px-4 py-2 rounded-xl bg-slate-950 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold disabled:opacity-40 flex items-center gap-1.5"
+                  className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-950 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold disabled:opacity-40 flex items-center gap-1.5 min-h-[44px]"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Previous</span>
                 </button>
 
                 {/* Quick question dots navigation */}
-                <div className="hidden md:flex items-center gap-1.5 overflow-x-auto max-w-md px-2">
+                <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-md px-1 scrollbar-none">
                   {questions.map((q, idx) => {
                     const isAnswered = !!answers[q.id];
                     const isCurrent = idx === currentIdx;
@@ -700,7 +701,7 @@ export default function AssessPage() {
                       <button
                         key={q.id}
                         onClick={() => setCurrentIdx(idx)}
-                        className={`w-6 h-6 rounded-md text-[10px] font-mono font-bold flex items-center justify-center transition-all ${
+                        className={`w-7 h-7 sm:w-6 sm:h-6 rounded-md text-[10px] font-mono font-bold flex items-center justify-center transition-all shrink-0 ${
                           isCurrent
                             ? 'ring-2 ring-indigo-400 bg-indigo-600 text-white'
                             : isFlagged
@@ -719,7 +720,7 @@ export default function AssessPage() {
                 {currentIdx < questions.length - 1 ? (
                   <button
                     onClick={() => setCurrentIdx((prev) => Math.min(questions.length - 1, prev + 1))}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                    className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors min-h-[44px]"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -727,7 +728,7 @@ export default function AssessPage() {
                 ) : (
                   <button
                     onClick={() => setShowConfirmSubmit(true)}
-                    className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                    className="px-4 sm:px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-colors min-h-[44px]"
                   >
                     <span>Submit Exam</span>
                     <CheckCircle2 className="w-3.5 h-3.5" />

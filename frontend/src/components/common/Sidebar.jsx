@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Target,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
@@ -114,20 +115,36 @@ export default function Sidebar({ isOpen, onClose }) {
         <div
           className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 md:hidden"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
       {/* Main Collapsible Sidebar Drawer */}
       <aside
-        className={`fixed md:sticky top-0 md:top-[61px] left-0 z-45 h-screen md:h-[calc(100vh-61px)] w-72 backdrop-blur-2xl border-r p-3 sm:p-4 flex flex-col justify-between transition-all duration-300 ease-in-out overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed md:sticky top-0 md:top-[61px] left-0 z-50 h-screen md:h-[calc(100vh-61px)] w-72 max-w-[85vw] backdrop-blur-2xl border-r p-3 sm:p-4 flex flex-col justify-between transition-all duration-300 ease-in-out overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
         }`}
         style={{
-          backgroundColor: activeTheme?.palette?.cardBg || 'rgba(9, 14, 28, 0.95)',
+          backgroundColor: activeTheme?.palette?.cardBg || 'rgba(9, 14, 28, 0.96)',
           borderColor: activeTheme?.palette?.cardBorder || 'rgba(51, 65, 85, 0.5)',
+          paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
         }}
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
+          {/* Mobile Drawer Header with Close Button */}
+          <div className="md:hidden flex items-center justify-between pb-2 border-b border-slate-800">
+            <span className="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">
+              RoadmapIQ Navigation
+            </span>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+              aria-label="Close menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
           {/* Main Dashboard Quick Link */}
           <NavLink
             to="/dashboard"
