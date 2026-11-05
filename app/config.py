@@ -14,8 +14,8 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
 
-    # Database (supports POSTGRES_URL from Neon and DATABASE_URL)
-    DATABASE_URL: str = os.environ.get("POSTGRES_URL") or os.environ.get("DATABASE_URL") or "sqlite:///./roadmapiq.db"
+    # Database
+    DATABASE_URL: str = "sqlite:///./roadmapiq.db"
 
     # CORS
     CORS_ORIGINS: List[str] = [

@@ -262,10 +262,10 @@ export default function PreparationCenterPage() {
               </p>
             </div>
             <button
-              onClick={() => navigate('/journey?tab=roadmap')}
+              onClick={() => navigate('/assessment')}
               className="btn-primary text-xs py-2 px-4 shrink-0"
             >
-              Open Full Interactive Roadmap
+              Take Comprehensive Career Test
             </button>
           </div>
 
@@ -282,10 +282,10 @@ export default function PreparationCenterPage() {
                 <p className="text-xs text-slate-400 line-clamp-2">{task.description}</p>
                 <div className="pt-2 border-t border-slate-800 flex justify-end">
                   <button
-                    onClick={() => navigate('/journey?tab=roadmap')}
+                    onClick={() => navigate('/assessment')}
                     className="btn-secondary text-xs py-1.5 px-3"
                   >
-                    View In Roadmap
+                    Quiz Check
                   </button>
                 </div>
               </div>

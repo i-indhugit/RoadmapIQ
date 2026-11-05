@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const completionPct = activeRoadmapProgress?.completion_percentage ?? 0;
   const completedTasks = activeRoadmapProgress?.completed_tasks ?? activeRoadmap?.completed_tasks_count ?? 0;
   const totalTasks = activeRoadmapProgress?.total_tasks ?? activeRoadmap?.tasks_count ?? (activeRoadmap?.tasks?.length || 0);
+  const readinessScore = activeRoadmapProgress?.readiness_score ?? activeRoadmap?.readiness_score ?? 45;
 
   // Single Focused "Today's Task" & "Continue Learning"
   const pendingTasks = useMemo(
@@ -142,13 +143,13 @@ export default function DashboardPage() {
       icon: Compass,
     },
     {
-      id: 'mentor',
-      title: 'AI Mentor',
-      tagline: '24/7 Grounded AI Tutor & RAG',
-      desc: 'Ask questions, review learning notes, debug exercises, and get curriculum guidance in your career track.',
-      path: '/learning-assistant',
-      color: 'from-purple-500/20 to-indigo-500/10 border-purple-500/40 text-purple-400 hover:border-purple-400',
-      icon: Sparkles,
+      id: 'assess',
+      title: 'Assess',
+      tagline: 'Career-Specific Testing & Gaps',
+      desc: 'Take timed skill evaluations in your track’s environment, audit critical gaps, and adapt your roadmap.',
+      path: '/assess',
+      color: 'from-indigo-500/20 to-purple-500/10 border-indigo-500/40 text-indigo-400 hover:border-indigo-400',
+      icon: Award,
     },
     {
       id: 'journey',
@@ -233,12 +234,12 @@ export default function DashboardPage() {
 
           <div>
             <div className="text-[10px] uppercase font-mono text-indigo-400 font-semibold">
-              Learning Focus
+              Career Readiness
             </div>
-            <div className="text-sm font-extrabold text-indigo-300 mt-1 truncate">
-              {todayTask?.title || 'Personalized Tasks'}
+            <div className="text-xl font-extrabold text-indigo-300 mt-0.5">
+              {readinessScore}%
             </div>
-            <div className="text-[10px] text-slate-500">Milestone checkpoint</div>
+            <div className="text-[10px] text-slate-500">Verified by assessments</div>
           </div>
 
           <div>

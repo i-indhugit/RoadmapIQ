@@ -550,10 +550,10 @@ export default function ExploreHubPage() {
                             Curriculum
                           </button>
                           <Link
-                            to="/journey?tab=roadmap"
+                            to={`/assessment?career=${role.slug || role.id}`}
                             className="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1 border border-slate-700 text-center"
                           >
-                            <span>Roadmap</span>
+                            <span>Take Test</span>
                             <ArrowRight className="w-3 h-3 text-cyan-400" />
                           </Link>
                         </div>
@@ -690,10 +690,10 @@ export default function ExploreHubPage() {
                         Curriculum
                       </button>
                       <Link
-                        to="/journey?tab=roadmap"
+                        to={`/assessment?career=${role.slug || role.id}`}
                         className="px-2 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1 border border-slate-700 text-center cursor-pointer"
                       >
-                        <span>Roadmap</span>
+                        <span>Take Test</span>
                         <ArrowRight className="w-3 h-3 text-cyan-400" />
                       </Link>
                     </div>
@@ -752,10 +752,10 @@ export default function ExploreHubPage() {
                   </a>
 
                   <Link
-                    to="/journey?tab=roadmap"
+                    to={`/assessment?skill=${s.slug}`}
                     className="btn-secondary text-xs py-1 px-3"
                   >
-                    Learn Skill
+                    Assess Skill
                   </Link>
                 </div>
               </div>

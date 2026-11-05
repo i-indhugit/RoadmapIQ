@@ -186,10 +186,10 @@ export default function WeeklyReviewPage() {
                 </p>
               </div>
               <button
-                onClick={() => navigate('/journey?tab=roadmap')}
+                onClick={() => navigate('/assessment')}
                 className="btn-primary text-xs py-2 px-4"
               >
-                Continue Roadmap Journey
+                Launch Assessment
               </button>
             </div>
 

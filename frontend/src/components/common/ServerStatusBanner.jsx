@@ -46,7 +46,7 @@ const ServerStatusBanner = () => {
         <div className="flex items-center gap-2 max-w-7xl mx-auto w-full">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-medium">
-            Connected to RoadmapIQ Vercel-Native Cloud (Vercel Serverless + Neon PostgreSQL). All services operational!
+            Connected to RoadmapIQ Cloud Backend (Render + Neon PostgreSQL). All services operational!
           </span>
         </div>
       </aside>
@@ -76,11 +76,11 @@ const ServerStatusBanner = () => {
             </span>
             <span className="text-amber-100">
               {isWaking
-                ? `Connecting to Vercel Serverless Function (${coldStartEvent.attempt}/${coldStartEvent.maxAttempts}).`
-                : 'RoadmapIQ cloud services initializing. Establishing secure database connection.'}
+                ? `Connecting to Render Cloud (${coldStartEvent.attempt}/${coldStartEvent.maxAttempts}). Free-tier services take ~30-45s to wake from sleep.`
+                : 'RoadmapIQ cloud backend sleeps after 15m of inactivity. Please allow 30 seconds for warm-up.'}
             </span>
             <span className="text-amber-300/80 hidden md:inline ml-1">
-              Your inputs, target career and roadmaps are safely preserved in Neon PostgreSQL.
+              Your inputs, target career and roadmaps are safely preserved.
             </span>
           </div>
         </div>

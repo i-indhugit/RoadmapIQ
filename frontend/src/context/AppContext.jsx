@@ -103,12 +103,8 @@ export const AppProvider = ({ children }) => {
     try {
       await healthApi.check();
       setBackendOnline(true);
-      try {
-        const ai = await aiApi.getStatus();
-        setAiStatus(ai);
-      } catch (aiErr) {
-        console.debug('AI status check deferred:', aiErr);
-      }
+      const ai = await aiApi.getStatus();
+      setAiStatus(ai);
     } catch (err) {
       setBackendOnline(false);
       setAiStatus({
@@ -183,27 +179,6 @@ export const AppProvider = ({ children }) => {
         const targetId = roadmapId || localStorage.getItem(STORAGE_KEYS.ROADMAP_ID);
         if (targetId) {
           roadmapData = await roadmapsApi.get(targetId).catch(() => null);
-        }
-      }
-
-      // 3. Fall back: Auto-generate if user has target role but no roadmap yet (No assessment required)
-      if (!roadmapData && effectiveRoleId) {
-        try {
-          roadmapData = await roadmapsApi.switchCareer({
-            role_id: Number(effectiveRoleId),
-            profile_id: profile?.id || undefined,
-          });
-        } catch {
-          try {
-            roadmapData = await roadmapsApi.generate({
-              role_id: Number(effectiveRoleId),
-              profile_id: profile?.id || undefined,
-              target_duration_weeks: profile?.target_duration_weeks || 24,
-              weekly_hours: profile?.weekly_study_hours || 10,
-            });
-          } catch {
-            // continue
-          }
         }
       }
 

@@ -651,11 +651,11 @@ const ProfilePage = () => {
               </p>
             </div>
             <Link
-              to="/journey?tab=roadmap"
+              to="/assessment"
               className="inline-flex items-center gap-1.5 text-xs text-brand-cyan hover:underline font-mono"
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>View Interactive Roadmap</span>
+              <Award className="w-3.5 h-3.5" />
+              <span>Take Verified Skill Quiz</span>
             </Link>
           </div>
 

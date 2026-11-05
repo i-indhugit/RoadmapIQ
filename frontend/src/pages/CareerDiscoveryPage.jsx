@@ -584,11 +584,11 @@ export default function CareerDiscoveryPage() {
                 type="button"
                 onClick={() => {
                   setIsDetailOpen(false);
-                  navigate('/journey?tab=roadmap');
+                  navigate(`/assessment?career=${selectedRoleDetail.slug || selectedRoleDetail.id}`);
                 }}
                 className="btn-secondary text-xs py-2 px-4"
               >
-                View Career Roadmap
+                Assess This Career
               </button>
 
               <div className="flex gap-2">

@@ -11,6 +11,7 @@ import ServerStatusBanner from './components/common/ServerStatusBanner';
 
 // The Four Primary Consolidated Modules
 import DiscoverPage from './pages/DiscoverPage';
+import AssessPage from './pages/AssessPage';
 import JourneyPage from './pages/JourneyPage';
 import GrowthPage from './pages/GrowthPage';
 
@@ -68,10 +69,9 @@ function App() {
 
             {/* THE FOUR PRIMARY MODULES */}
             <Route path="/discover" element={<DiscoverPage />} />
+            <Route path="/assess" element={<AssessPage />} />
             <Route path="/journey" element={<JourneyPage />} />
             <Route path="/growth" element={<GrowthPage />} />
-            <Route path="/mentor" element={<LearningAssistantPage />} />
-            <Route path="/learning-assistant" element={<LearningAssistantPage />} />
 
             {/* Account & Career Info */}
             <Route path="/profile" element={<ProfilePage />} />
@@ -84,12 +84,11 @@ function App() {
             <Route path="/explore" element={<DiscoverPage />} />
             <Route path="/compare" element={<DiscoverPage />} />
 
-            {/* Assessment permanently removed -> Seamless instant redirect to Roadmap */}
-            <Route path="/assess" element={<Navigate to="/journey?tab=roadmap" replace />} />
-            <Route path="/assessment" element={<Navigate to="/journey?tab=roadmap" replace />} />
-            <Route path="/skill-gap" element={<Navigate to="/journey?tab=roadmap" replace />} />
-            <Route path="/skill-analysis" element={<Navigate to="/journey?tab=roadmap" replace />} />
-            <Route path="/reassessment" element={<Navigate to="/journey?tab=roadmap" replace />} />
+            {/* Backward-Compatible Route Aliases for Module 2: Assess */}
+            <Route path="/assessment" element={<AssessPage />} />
+            <Route path="/skill-gap" element={<AssessPage />} />
+            <Route path="/skill-analysis" element={<AssessPage />} />
+            <Route path="/reassessment" element={<AssessPage />} />
 
             {/* Backward-Compatible Route Aliases for Module 3: My Journey */}
             <Route path="/roadmap" element={<JourneyPage />} />

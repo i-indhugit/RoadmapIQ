@@ -117,11 +117,11 @@ export default function MyCareerPage() {
 
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             <button
-              onClick={() => navigate('/journey?tab=roadmap')}
+              onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition cursor-pointer"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>Open Interactive Roadmap</span>
+              <Award className="w-4 h-4" />
+              <span>Verify Skills in Assessment</span>
             </button>
 
             <Link
@@ -391,10 +391,10 @@ export default function MyCareerPage() {
 
             <div className="pt-3 border-t border-slate-800 flex justify-end">
               <button
-                onClick={() => navigate('/journey?tab=roadmap')}
+                onClick={() => navigate(`/assessment?career=${activeRole?.slug || activeRole?.id || ''}`)}
                 className="btn-primary text-xs py-2 px-5 flex items-center gap-1.5"
               >
-                <span>Enter Roadmap Workspace in {environment.environmentName}</span>
+                <span>Enter Assessment in {environment.environmentName}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
