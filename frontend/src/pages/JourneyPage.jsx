@@ -57,6 +57,7 @@ export default function JourneyPage() {
     setActiveRoadmapProgress,
     activeRole,
     profile,
+    isInitializing,
     toggleTask,
     updateTaskDetails,
     refreshRoadmap,
@@ -76,10 +77,10 @@ export default function JourneyPage() {
   const [aiAdvice, setAiAdvice] = useState(null);
 
   useEffect(() => {
-    if (!activeRoadmap) {
+    if (!isInitializing && !activeRoadmap) {
       refreshRoadmap();
     }
-  }, [activeRoadmap, refreshRoadmap]);
+  }, [isInitializing, activeRoadmap, refreshRoadmap]);
 
   // Derived tasks & current "Continue Learning" target
   const allTasks = useMemo(() => activeRoadmap?.tasks || [], [activeRoadmap?.tasks]);

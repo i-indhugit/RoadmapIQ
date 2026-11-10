@@ -39,6 +39,9 @@ export const AppProvider = ({ children }) => {
 
   // Stale API response & race condition sequence tracker
   const switchRequestSeq = useRef(0);
+  const profileRef = useRef(null);
+  const initPromiseRef = useRef(null);
+  profileRef.current = profile;
 
   // Dynamic Career Theme state - automatically updates throughout the entire application
   const activeTheme = useMemo(() => {
@@ -172,13 +175,14 @@ export const AppProvider = ({ children }) => {
   // Fetch or reload roadmap & progress for a given roadmap or active role
   const refreshRoadmap = useCallback(async (roadmapId = null, roleId = null) => {
     try {
-      const effectiveRoleId = roleId || profile?.target_role_id || localStorage.getItem(STORAGE_KEYS.ROLE_ID);
+      const currentProf = profileRef.current;
+      const effectiveRoleId = roleId || currentProf?.target_role_id || localStorage.getItem(STORAGE_KEYS.ROLE_ID);
       let roadmapData = null;
 
       // 1. If we have a profile and role, retrieve that role's specific saved roadmap
-      if (effectiveRoleId && profile?.id) {
+      if (effectiveRoleId && currentProf?.id) {
         try {
-          roadmapData = await roadmapsApi.getByRole(Number(effectiveRoleId), profile.id);
+          roadmapData = await roadmapsApi.getByRole(Number(effectiveRoleId), currentProf.id);
         } catch {
           // Fall back to target ID lookup
         }
@@ -208,7 +212,7 @@ export const AppProvider = ({ children }) => {
       console.warn('Roadmap load note:', err.message);
       return null;
     }
-  }, [profile?.target_role_id, profile?.id]);
+  }, []);
 
   // Dynamic career switching with race-condition guard and progress preservation
   const switchCareer = useCallback(async (roleOrId, options = {}) => {
@@ -329,7 +333,7 @@ export const AppProvider = ({ children }) => {
   // Fetch gamification status: XP, level, badges, streak
   const refreshGamification = useCallback(async (profileId = null) => {
     try {
-      const targetId = profileId || profile?.id || localStorage.getItem(STORAGE_KEYS.PROFILE_ID);
+      const targetId = profileId || profileRef.current?.id || localStorage.getItem(STORAGE_KEYS.PROFILE_ID);
       const data = await gamificationApi.getStatus(targetId ? parseInt(targetId, 10) : undefined);
       if (data) {
         setGamification({
@@ -350,7 +354,7 @@ export const AppProvider = ({ children }) => {
       console.warn('Gamification refresh note:', err.message);
       return null;
     }
-  }, [profile]);
+  }, []);
 
   // Task completion toggle with backend confirmation
   const toggleTask = useCallback(async (taskId, currentStatus) => {
@@ -531,12 +535,11 @@ export const AppProvider = ({ children }) => {
     }
   }, [refreshProfile, addToast]);
 
-  // Initial startup synchronization
+  // Initial startup synchronization (runs once cleanly on mount; safe under React StrictMode)
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
-      setIsInitializing(true);
+    const runInit = async () => {
       await checkHealth();
 
       // Verify or establish isolated user session
@@ -580,7 +583,7 @@ export const AppProvider = ({ children }) => {
       if (targetRoleId) {
         // Resolve target role and immediately apply its career theme
         const matched = roles.find((r) => r.id === targetRoleId);
-        if (matched) {
+        if (matched && mounted) {
           setActiveRole(matched);
           applyThemeToDocument(getCareerTheme(matched.slug || matched.title));
         }
@@ -620,15 +623,25 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    init();
+    if (!initPromiseRef.current) {
+      initPromiseRef.current = runInit().catch((err) => {
+        console.warn('AppContext init error:', err);
+        if (mounted) setIsInitializing(false);
+      });
+    } else {
+      // StrictMode second pass: once shared init completes, ensure loading state clears
+      initPromiseRef.current.finally(() => {
+        if (mounted) setIsInitializing(false);
+      });
+    }
 
-    // Periodic health heartbeat (every 30 seconds)
-    const interval = setInterval(checkHealth, 30000);
+    // Periodic health heartbeat (every 60 seconds, silent on success)
+    const interval = setInterval(checkHealth, 60000);
     return () => {
       mounted = false;
       clearInterval(interval);
     };
-  }, [checkHealth, loadCatalogs, refreshProfile, refreshRoadmap, refreshGamification]);
+  }, []);
 
   // Sync activeRole with profile target_role_id if set
   useEffect(() => {

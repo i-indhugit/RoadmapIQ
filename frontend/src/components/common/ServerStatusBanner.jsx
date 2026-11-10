@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AlertCircle, CheckCircle2, RefreshCw, X, Zap } from 'lucide-react';
 
@@ -9,26 +9,49 @@ const ServerStatusBanner = () => {
   const [dismissed, setDismissed] = useState(false);
   const [justConnected, setJustConnected] = useState(false);
 
+  const wasDegradedRef = useRef(false);
+  const hideTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (backendOnline === false) {
+      wasDegradedRef.current = true;
+    }
+  }, [backendOnline]);
+
   useEffect(() => {
     const handleColdStart = (e) => {
       const detail = e.detail;
-      setColdStartEvent(detail);
+      if (!detail) return;
+
+      if (detail.status === 'waking' || detail.status === 'sleeping') {
+        wasDegradedRef.current = true;
+        setDismissed(false);
+        setJustConnected(false);
+        setColdStartEvent(detail);
+        return;
+      }
 
       if (detail.status === 'connected') {
-        setJustConnected(true);
-        const timer = setTimeout(() => {
-          setJustConnected(false);
+        if (wasDegradedRef.current) {
+          wasDegradedRef.current = false;
           setColdStartEvent(null);
-        }, 3000);
-        return () => clearTimeout(timer);
-      } else if (detail.status === 'waking' || detail.status === 'sleeping') {
-        setDismissed(false);
+          setJustConnected(true);
+          if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+          hideTimerRef.current = setTimeout(() => {
+            setJustConnected(false);
+          }, 3000);
+        } else if (coldStartEvent !== null) {
+          setColdStartEvent(null);
+        }
       }
     };
 
     window.addEventListener('roadmapiq:coldstart', handleColdStart);
-    return () => window.removeEventListener('roadmapiq:coldstart', handleColdStart);
-  }, []);
+    return () => {
+      window.removeEventListener('roadmapiq:coldstart', handleColdStart);
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
+  }, [coldStartEvent]);
 
   const handleManualRetry = async () => {
     setIsRetrying(true);
