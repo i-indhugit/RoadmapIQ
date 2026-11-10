@@ -205,9 +205,12 @@ def init_db():
 
         db = SessionLocal()
         try:
-            from app.models import CareerRole
-            # Skip seeding if catalogue is already populated (avoids blocking Render cold starts)
+            from app.models import CareerRole, KnowledgeDocument
+            # Skip heavy career catalogue seeding if already populated (avoids blocking Render cold starts)
             if db.query(CareerRole).count() >= 250:
+                if db.query(KnowledgeDocument).count() == 0:
+                    from app.engine.seed_rag_knowledge import seed_rag_knowledge
+                    seed_rag_knowledge(db)
                 logger.info("Database catalogue already seeded with 250+ careers. Skipping startup seed.")
                 return
 
@@ -256,8 +259,11 @@ if env_cors:
     except Exception:
         pass
 
+render_external_url = os.environ.get("RENDER_EXTERNAL_URL")
+if render_external_url and render_external_url.strip() not in cors_origins:
+    cors_origins.append(render_external_url.strip().rstrip("/"))
+
 for default_origin in [
-    "https://roadmap-iq.vercel.app",
     "https://roadmapiq-2.onrender.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -269,7 +275,7 @@ for default_origin in [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"^https://.*\.vercel\.app$",
+    allow_origin_regex=r"^https://.*\.(onrender\.com|vercel\.app)$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -277,7 +283,7 @@ app.add_middleware(
 )
 
 # Root level health & readiness probes for Render and cloud load balancers
-from fastapi import Response
+from fastapi import HTTPException, Response
 
 @app.get("/health", include_in_schema=False)
 def root_health():
@@ -308,7 +314,6 @@ app.include_router(portfolio.router, prefix="/api")
 app.include_router(rag.router, prefix="/api")
 
 
-import os
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
@@ -329,10 +334,17 @@ if DIST_DIR:
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_spa_frontend(full_path: str):
-        # Serve exact file if exists (e.g. favicon.ico, vite.svg)
-        target_file = os.path.join(DIST_DIR, full_path)
-        if full_path and os.path.isfile(target_file):
-            return FileResponse(target_file)
+        # Never swallow unhandled /api/* routes with index.html
+        clean_path = (full_path or "").lstrip("/")
+        if clean_path == "api" or clean_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+
+        # Serve exact file if exists (with path traversal guard)
+        if clean_path:
+            target_file = os.path.abspath(os.path.join(DIST_DIR, clean_path))
+            if os.path.commonpath([DIST_DIR, target_file]) == DIST_DIR and os.path.isfile(target_file):
+                return FileResponse(target_file)
+
         # Fallback to index.html for client-side routing
         index_file = os.path.join(DIST_DIR, "index.html")
         if os.path.isfile(index_file):

@@ -1,95 +1,58 @@
-# RoadmapIQ – Deployment Guide: Vercel (Frontend) + Render (Backend)
+# RoadmapIQ – Production Deployment Guide (Render ONLY, ₹0 Free Tier)
 
-Deploy **RoadmapIQ** for **100% FREE** with:
-- **Frontend** hosted on **Vercel** (Global edge CDN, instant loads, zero sleep)
-- **Backend** hosted on **Render** (Python FastAPI REST API + RAG Engine + SQLite)
+Deploy **RoadmapIQ** completely **FREE** on **Render** with persistent **PostgreSQL**.
 
 ---
 
-## 📋 Architecture Overview
+## Architecture Overview
 
-```mermaid
-flowchart LR
-    Browser["User Web Browser"]
-    Vercel["Frontend on VERCEL\n(https://roadmapiq.vercel.app)\nReact 18 + Vite + Tailwind"]
-    Render["Backend on RENDER\n(https://roadmapiq-api.onrender.com)\nFastAPI + SQLite + RAG Engine"]
+RoadmapIQ is configured to run seamlessly on **Render** using the unified full-stack blueprint (`render.yaml`), or optionally as two separate Render services:
 
-    Browser -->|Loads UI & Assets| Vercel
-    Browser -->|API Calls (VITE_API_BASE_URL)| Render
-    Render -->|Returns JSON & RAG Data| Browser
+1. **Recommended (Single Unified Render Web Service — Free Tier ₹0):**
+   - **Runtime:** Python 3.10 (`uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers`)
+   - **API:** Served at `/api/*` (`/health` and `/ready` for Render health checks)
+   - **Frontend SPA:** Pre-built React + Vite bundle in `dist/` served directly by FastAPI with SPA client-side route fallback.
+   - **Database:** External PostgreSQL (`DATABASE_URL` pointing to Render Managed PostgreSQL or Neon Free PostgreSQL).
+
+2. **Alternative (Separate Render Backend Web Service + Render Frontend Static Site):**
+   - **Backend Web Service:** Root directory `.` (or `backend`), Build `pip install -r requirements.txt`, Start `uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers`.
+   - **Frontend Static Site:** Root directory `frontend`, Build `npm ci && npm run build`, Publish directory `dist`.
+   - **Rewrite Rule (Required for SPA Refresh on Static Site):** Source `/*` → Destination `/index.html` (Action: `Rewrite`).
+   - **Frontend Env Var:** `VITE_API_BASE_URL=https://your-backend-service.onrender.com/api`.
+
+---
+
+## Critical Production Requirement: Persistent PostgreSQL (`DATABASE_URL`)
+
+> **IMPORTANT:** Render's Free Web Service local filesystem is **ephemeral** — SQLite (`roadmapiq.db`) resets whenever Render restarts or redeploys the container.
+
+To persist student accounts, target careers, roadmaps, and progress across deployments:
+1. Provision a free PostgreSQL database (Render Free PostgreSQL or Neon Free PostgreSQL).
+2. Set `DATABASE_URL` in Render → **Environment** (e.g. `postgresql://user:pass@host/dbname?sslmode=require`).
+3. Verify connectivity by opening `https://<your-render-app>.onrender.com/ready` — look for `"database": "connected"` and `"database_url_dialect": "postgresql"`.
+
+---
+
+## Required Render Environment Variables
+
+| Variable | Value / Description | Required |
+|---|---|---|
+| `PYTHON_VERSION` | `3.10.16` | Recommended |
+| `APP_ENV` | `production` | Yes |
+| `DATABASE_URL` | PostgreSQL connection string | **Yes (for persistence)** |
+| `SECRET_KEY` | Random secret string for auth tokens | **Yes** |
+| `GEMINI_API_KEY` | Google Gemini API key (optional; deterministic/RAG fallback active if unset) | Optional |
+| `CORS_ORIGINS` | JSON array of allowed origins if hosting frontend separately | Optional (`*.onrender.com` allowed automatically) |
+
+---
+
+## Local Verification Commands
+
+```bash
+# Build frontend production bundle and sync to root dist/
+cd frontend && npm run build
+Copy-Item -Path frontend/dist/* -Destination dist/ -Recurse -Force
+
+# Run backend automated test suite
+backend\venv\Scripts\python -m pytest backend\tests
 ```
-
----
-
-## 🚀 STEP 1: Deploy Backend on Render (Do this first)
-
-You must deploy the backend first to get your backend URL (e.g. `https://roadmapiq-backend.onrender.com`).
-
-1. **Sign in to Render**:
-   - Go to [render.com](https://render.com) and log in with your **GitHub** account.
-
-2. **Create New Web Service**:
-   - Click the blue **New +** button in the top right $\rightarrow$ select **Web Service**.
-   - Select **Build and deploy from a Git repository**.
-   - Connect and choose: **`i-indhugit/RoadmapIQ`**.
-
-3. **Configure the Web Service**:
-   | Setting | Value |
-   |---|---|
-   | **Name** | `roadmapiq-backend` *(or any unique name)* |
-   | **Region** | Choose closest to you (e.g., *Singapore* or *Frankfurt*) |
-   | **Branch** | `main` |
-   | **Root Directory** | `backend` |
-   | **Runtime** | **Python 3** |
-   | **Build Command** | `pip install -r requirements.txt` |
-   | **Start Command** | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
-   | **Instance Type** | **Free** ($0/month) |
-
-4. **Add Environment Variables**:
-   Click **Advanced** $\rightarrow$ **Add Environment Variable**:
-   - `PYTHONPATH` = `.`
-   - `CORS_ORIGINS` = `["*"]`
-   - *(Optional)* `GEMINI_API_KEY` = *(Your Gemini API key if using cloud AI)*
-
-5. **Deploy**:
-   - Click **Create Web Service**.
-   - Wait ~2 minutes for the build to finish.
-   - **Copy your Render backend URL** from the top of the page:
-     `https://roadmapiq-backend.onrender.com` (example)
-
----
-
-## ⚡ STEP 2: Deploy Frontend on Vercel
-
-1. **Sign in to Vercel**:
-   - Go to [vercel.com](https://vercel.com) and log in with your **GitHub** account.
-
-2. **Import Project**:
-   - Click **Add New...** $\rightarrow$ **Project**.
-   - Find and click **Import** next to **`i-indhugit/RoadmapIQ`**.
-
-3. **Configure the Project**:
-   - **Framework Preset**: **Vite** (Vercel will detect it automatically).
-   - **Root Directory**: Click **Edit** and select **`frontend`** $\rightarrow$ click **Continue**.
-   - **Build Command**: `npm run build` (default).
-   - **Output Directory**: `dist` (default).
-
-4. **Add Environment Variable (Crucial Step)**:
-   Expand the **Environment Variables** section and add:
-   - **Name / Key**: `VITE_API_BASE_URL`
-   - **Value**: `https://your-render-app.onrender.com/api`
-     *(Replace `your-render-app` with your actual Render URL from Step 1. Ensure you include `/api` at the end!)*
-
-5. **Deploy**:
-   - Click **Deploy**.
-   - In ~45 seconds, Vercel will complete the build and give you your live URL:
-     `https://roadmapiq.vercel.app`!
-
----
-
-## 🔍 How to Verify Everything is Working
-
-1. Open your Vercel URL in your browser: `https://your-app.vercel.app`.
-2. Open DevTools (press `F12` $\rightarrow$ **Network** tab).
-3. If Render was asleep, the first request might take ~30–45s to wake up (the frontend timeout has been set to 60s so it won't fail).
-4. Once awake, all tabs (**Discover**, **Assess**, **My Journey**, **My Growth**) will load their data smoothly!

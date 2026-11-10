@@ -443,6 +443,18 @@ def switch_career_roadmap(req: RoadmapSwitchRequest, db: Session = Depends(get_d
             # Check it has tasks
             task_count = db.query(RoadmapTask).filter(RoadmapTask.roadmap_id == existing.id).count()
             if task_count > 0:
+                if (req.target_duration_weeks and req.target_duration_weeks != existing.target_duration_weeks) or (
+                    req.weekly_hours and req.weekly_hours != existing.weekly_hours
+                ):
+                    return reschedule_roadmap(
+                        existing.id,
+                        RoadmapRescheduleRequest(
+                            roadmap_id=existing.id,
+                            new_weekly_hours=req.weekly_hours or existing.weekly_hours,
+                            new_duration_weeks=req.target_duration_weeks or existing.target_duration_weeks,
+                        ),
+                        db=db,
+                    )
                 existing.updated_at = datetime.now(timezone.utc)
                 db.commit()
                 db.refresh(existing)

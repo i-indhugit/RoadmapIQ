@@ -180,10 +180,13 @@ class EmbeddingEngine:
         return self._st_model
 
     def _get_ollama_embedding(self, text: str) -> Optional[List[float]]:
+        if os.environ.get("OLLAMA_ENABLED", "").lower() != "true":
+            return None
         try:
+            ollama_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
             with httpx.Client(timeout=1.5) as client:
                 res = client.post(
-                    "http://127.0.0.1:11434/api/embeddings",
+                    f"{ollama_url.rstrip('/')}/api/embeddings",
                     json={"model": "nomic-embed-text", "prompt": text[:500]},
                 )
                 if res.status_code == 200:
@@ -359,6 +362,7 @@ class VectorRetriever:
                 )
 
         scored_candidates: List[Tuple[float, KnowledgeChunk]] = []
+        relaxed_candidates: List[Tuple[float, KnowledgeChunk]] = []
 
         # Stage 2: Compute hybrid similarity (Cosine Vector + Lexical Overlap)
         for chunk in candidates:
@@ -394,6 +398,11 @@ class VectorRetriever:
 
             if final_score >= min_similarity:
                 scored_candidates.append((final_score, chunk))
+            elif final_score >= 0.05 and (overlap > 0 or career_domain):
+                relaxed_candidates.append((final_score, chunk))
+
+        if not scored_candidates and relaxed_candidates:
+            scored_candidates = relaxed_candidates
 
         # Sort descending by score
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
@@ -524,12 +533,15 @@ class RAGGroundedGenerator:
         target_role: Optional[str],
         domain: Optional[str],
     ) -> Optional[str]:
-        """Try local Ollama server if available."""
+        """Try local Ollama server only if explicitly enabled."""
+        if os.environ.get("OLLAMA_ENABLED", "").lower() != "true":
+            return None
         try:
+            ollama_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
             prompt = self._build_grounded_prompt(query, retrieved_items, target_role, domain)
             with httpx.Client(timeout=3.5) as client:
                 res = client.post(
-                    "http://127.0.0.1:11434/api/generate",
+                    f"{ollama_url.rstrip('/')}/api/generate",
                     json={
                         "model": "llama3",
                         "prompt": prompt,

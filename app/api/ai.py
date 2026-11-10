@@ -85,12 +85,19 @@ def ask_learning_assistant(req: RAGQueryRequest, db: Session = Depends(get_db)):
     Retrieves grounded knowledge chunks from the centralized knowledge base and provides cited guidance.
     """
     from app.engine.rag_engine import VectorRetriever, RAGGroundedGenerator
+    from app.models import CareerRole
     retriever = VectorRetriever(db)
     generator = RAGGroundedGenerator()
 
+    resolved_domain = req.domain
+    if req.target_role and not resolved_domain:
+        matched_role = db.query(CareerRole).filter(CareerRole.title == req.target_role).first()
+        if matched_role and matched_role.domain:
+            resolved_domain = matched_role.domain
+
     retrieved = retriever.retrieve(
         query=req.query,
-        career_domain=req.domain,
+        career_domain=resolved_domain,
         career_role_title=req.target_role,
         category=req.category,
         country_jurisdiction=req.country_jurisdiction,
@@ -103,7 +110,7 @@ def ask_learning_assistant(req: RAGQueryRequest, db: Session = Depends(get_db)):
             query=req.query,
             retrieved_items=retrieved,
             target_role=req.target_role,
-            domain=req.domain,
+            domain=resolved_domain,
         )
         return RAGQueryResponse(
             query=req.query,
@@ -113,7 +120,7 @@ def ask_learning_assistant(req: RAGQueryRequest, db: Session = Depends(get_db)):
             context_skills_identified=list({s.skill_name for s in sources if s.skill_name}),
             confidence_score=retrieved[0][0] if retrieved else 0.85,
             is_grounded_in_rag=is_grounded,
-            domain_identified=req.domain,
+            domain_identified=resolved_domain,
         )
 
     return process_rag_query(

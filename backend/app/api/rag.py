@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import KnowledgeDocument, KnowledgeChunk, RAGInteractionLog, StudentProfile
+from app.models import KnowledgeDocument, KnowledgeChunk, RAGInteractionLog, StudentProfile, CareerRole
 from app.schemas import (
     RAGQueryRequest,
     RAGQueryResponse,
@@ -46,14 +46,19 @@ def query_knowledge_base(
     retriever = VectorRetriever(db)
     generator = RAGGroundedGenerator()
 
-    # If student profile provided, fill context if missing
+    # Resolve missing target_role or domain from student profile or CareerRole catalogue
     if req.profile_id:
         student = db.query(StudentProfile).filter(StudentProfile.id == req.profile_id).first()
-        if student:
-            if not req.target_role and student.target_role:
+        if student and student.target_role:
+            if not req.target_role:
                 req.target_role = student.target_role.title
-                if not req.domain and student.target_role.domain:
-                    req.domain = student.target_role.domain
+            if not req.domain and student.target_role.domain:
+                req.domain = student.target_role.domain
+
+    if req.target_role and not req.domain:
+        matched_role = db.query(CareerRole).filter(CareerRole.title == req.target_role).first()
+        if matched_role and matched_role.domain:
+            req.domain = matched_role.domain
 
     retrieved = retriever.retrieve(
         query=req.query,
@@ -64,6 +69,18 @@ def query_knowledge_base(
         top_k=req.top_k or 5,
         min_similarity=0.18,
     )
+
+    if not retrieved:
+        # Fallback to curated database LearningResource + Skill RAG retriever if domain has no indexed PDF/doc yet
+        from app.engine.rag_retriever import process_rag_query
+        resource_rag = process_rag_query(
+            db=db,
+            query=req.query,
+            target_role=req.target_role,
+            preferred_format="mixed",
+        )
+        if resource_rag and resource_rag.has_relevant_sources:
+            return resource_rag
 
     answer, sources, is_grounded = generator.synthesize_answer(
         query=req.query,

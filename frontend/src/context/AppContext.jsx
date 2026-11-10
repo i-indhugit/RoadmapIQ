@@ -137,19 +137,25 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
-  // Fetch or reload profile
+  // Fetch or reload profile (prefers token-bound /profile/latest when authenticated)
   const refreshProfile = useCallback(async (profileId = null) => {
     try {
       let prof = null;
-      const targetId = profileId || localStorage.getItem(STORAGE_KEYS.PROFILE_ID);
-      if (targetId) {
-        try {
-          prof = await profileApi.get(targetId);
-        } catch {
+      const hasToken = typeof window !== 'undefined' && Boolean(localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN));
+      if (!profileId && hasToken) {
+        prof = await profileApi.getLatest().catch(() => null);
+      }
+      if (!prof) {
+        const targetId = profileId || localStorage.getItem(STORAGE_KEYS.PROFILE_ID);
+        if (targetId) {
+          try {
+            prof = await profileApi.get(targetId);
+          } catch {
+            prof = await profileApi.getLatest().catch(() => null);
+          }
+        } else {
           prof = await profileApi.getLatest().catch(() => null);
         }
-      } else {
-        prof = await profileApi.getLatest().catch(() => null);
       }
 
       if (prof) {
@@ -447,10 +453,13 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await authApi.login({ email, password });
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      localStorage.removeItem(STORAGE_KEYS.PROFILE_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROADMAP_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROLE_ID);
       setCurrentUser(res.user);
       const prof = await refreshProfile();
       if (prof?.target_role_id) {
-        await switchCareer(prof.target_role_id);
+        await switchCareer(prof.target_role_id, { silent: true });
       }
       setIsAuthModalOpen(false);
       addToast('success', `Welcome back, ${res.user.display_name}!`, 'Signed In');
@@ -465,8 +474,14 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await authApi.register({ email, password, display_name: displayName });
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      localStorage.removeItem(STORAGE_KEYS.PROFILE_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROADMAP_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROLE_ID);
       setCurrentUser(res.user);
-      await refreshProfile();
+      const prof = await refreshProfile();
+      if (prof?.target_role_id) {
+        await switchCareer(prof.target_role_id, { silent: true });
+      }
       setIsAuthModalOpen(false);
       addToast('success', `Account created! Welcome, ${res.user.display_name}.`, 'Registration Complete');
       return res;
@@ -474,14 +489,20 @@ export const AppProvider = ({ children }) => {
       addToast('error', err.message || 'Registration failed', 'Registration Error');
       throw err;
     }
-  }, [refreshProfile, addToast]);
+  }, [refreshProfile, switchCareer, addToast]);
 
   const continueAsGuest = useCallback(async (displayName) => {
     try {
       const res = await authApi.guest({ display_name: displayName || 'Student Explorer' });
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, res.access_token);
+      localStorage.removeItem(STORAGE_KEYS.PROFILE_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROADMAP_ID);
+      localStorage.removeItem(STORAGE_KEYS.ROLE_ID);
       setCurrentUser(res.user);
-      await refreshProfile();
+      const prof = await refreshProfile();
+      if (prof?.target_role_id) {
+        await switchCareer(prof.target_role_id, { silent: true });
+      }
       setIsAuthModalOpen(false);
       addToast('info', 'Guest session activated. Your progress is saved in this browser.', 'Guest Session');
       return res;
@@ -489,7 +510,7 @@ export const AppProvider = ({ children }) => {
       addToast('error', err.message || 'Guest session error', 'Guest Mode');
       throw err;
     }
-  }, [refreshProfile, addToast]);
+  }, [refreshProfile, switchCareer, addToast]);
 
   const logout = useCallback(async () => {
     try {

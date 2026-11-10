@@ -176,6 +176,20 @@ def call_gemini(
     return None
 
 
+def call_gemini_text(
+    prompt: str,
+    system_instruction: Optional[str] = None,
+    temperature: float = 0.3,
+) -> Optional[str]:
+    """Convenience plain-text wrapper around call_gemini used by RAG synthesis."""
+    return call_gemini(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        json_mode=False,
+        temperature=temperature,
+    )
+
+
 # -------------------------------------------------------------
 # Feature A & B: Skill Gap Explanation & Roadmap Advice
 # -------------------------------------------------------------

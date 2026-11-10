@@ -5,8 +5,9 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.config import settings
 
 # For SQLite, ensure directory exists and enable foreign keys
-# For PostgreSQL (Neon), ensure pool pre-ping, reconnect, and pool recycling
-db_url = os.environ.get("DATABASE_URL") or settings.DATABASE_URL
+# For PostgreSQL (Render Postgres / Neon), ensure pool pre-ping, reconnect, and pool recycling
+_raw_db_url = (os.environ.get("DATABASE_URL") or "").strip()
+db_url = _raw_db_url if _raw_db_url else settings.DATABASE_URL
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
