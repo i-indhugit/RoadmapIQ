@@ -22,6 +22,26 @@ db_url = _resolve_database_url()
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
+# SQLAlchemy 2.1+ defaults postgresql:// to psycopg (v3). Adapt dynamically to whichever driver is installed.
+if db_url.startswith("postgresql://"):
+    try:
+        import psycopg  # noqa: F401
+    except ImportError:
+        try:
+            import psycopg2  # noqa: F401
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        except ImportError:
+            pass
+elif db_url.startswith("postgresql+psycopg://"):
+    try:
+        import psycopg  # noqa: F401
+    except ImportError:
+        try:
+            import psycopg2  # noqa: F401
+            db_url = db_url.replace("postgresql+psycopg://", "postgresql+psycopg2://", 1)
+        except ImportError:
+            pass
+
 connect_args = {}
 engine_kwargs = {}
 
