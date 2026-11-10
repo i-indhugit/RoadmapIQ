@@ -4,10 +4,21 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import settings
 
+def _resolve_database_url() -> str:
+    """Resolve database URL cleanly from environment or settings, stripping accidental quotes."""
+    for env_name in ("DATABASE_URL", "POSTGRES_URL", "POSTGRESQL_URL", "DIRECT_URL"):
+        raw = (os.environ.get(env_name) or "").strip().strip('"').strip("'")
+        if raw and not raw.startswith("sqlite"):
+            return raw
+    raw_env_db = (os.environ.get("DATABASE_URL") or "").strip().strip('"').strip("'")
+    if raw_env_db:
+        return raw_env_db
+    return (settings.DATABASE_URL or "sqlite:///./roadmapiq.db").strip().strip('"').strip("'")
+
+
 # For SQLite, ensure directory exists and enable foreign keys
 # For PostgreSQL (Render Postgres / Neon), ensure pool pre-ping, reconnect, and pool recycling
-_raw_db_url = (os.environ.get("DATABASE_URL") or "").strip()
-db_url = _raw_db_url if _raw_db_url else settings.DATABASE_URL
+db_url = _resolve_database_url()
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 

@@ -4,9 +4,14 @@ from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# Locate .env file in backend/ or root
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-ENV_PATH = BACKEND_DIR / ".env" if (BACKEND_DIR / ".env").exists() else ".env"
+# Locate .env file in root or backend/
+_THIS_PARENT = Path(__file__).resolve().parent.parent
+_CANDIDATE_ENVS = [
+    _THIS_PARENT / ".env",
+    _THIS_PARENT / "backend" / ".env",
+    _THIS_PARENT.parent / ".env",
+]
+ENV_PATH = next((p for p in _CANDIDATE_ENVS if p.exists()), _THIS_PARENT / ".env")
 
 
 class Settings(BaseSettings):
