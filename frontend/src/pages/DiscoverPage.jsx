@@ -34,7 +34,7 @@ import {
 import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
 import CareerDiscoveryModal from '../components/discovery/CareerDiscoveryModal';
-import { DOMAIN_DETAILS } from './ExploreHubPage';
+import { DOMAIN_DETAILS, matchesDomainFilter } from './ExploreHubPage';
 import { getCareerTheme } from '../utils/careerThemes';
 
 export default function DiscoverPage() {
@@ -176,8 +176,8 @@ export default function DiscoverPage() {
     if (compareList.some((c) => c.id === role.id)) {
       setCompareList(compareList.filter((c) => c.id !== role.id));
     } else {
-      if (compareList.length >= 3) {
-        addToast('warning', 'You can compare up to 3 careers simultaneously.', 'Comparison Limit');
+      if (compareList.length >= 5) {
+        addToast('warning', 'You can compare up to 5 careers simultaneously.', 'Comparison Limit');
         return;
       }
       setCompareList([...compareList, role]);
@@ -300,9 +300,7 @@ export default function DiscoverPage() {
 
       const matchesSearch = tokens.length === 0 || tokens.every((token) => searchableHaystack.includes(token));
 
-      const matchesDomain =
-        selectedDomain === 'all' ||
-        (role.domain && role.domain.toLowerCase().includes(selectedDomain.toLowerCase()));
+      const matchesDomain = matchesDomainFilter(role, selectedDomain);
 
       return matchesSearch && matchesDomain;
     });
@@ -720,7 +718,7 @@ export default function DiscoverPage() {
                 <span>Side-by-Side Career Comparison</span>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Compare up to 3 careers across required qualifications, duration, demand, and skill sets.
+                Compare up to 5 careers across required qualifications, duration, demand, and skill sets.
               </p>
             </div>
             {compareList.length > 0 && (

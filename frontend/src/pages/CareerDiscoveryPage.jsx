@@ -29,6 +29,7 @@ import Badge from '../components/common/Badge';
 import Modal from '../components/common/Modal';
 import CareerDiscoveryModal from '../components/discovery/CareerDiscoveryModal';
 import { getCareerTheme } from '../utils/careerThemes';
+import { matchesDomainFilter } from './ExploreHubPage';
 
 const ALL_18_DOMAINS = [
   { code: 'A', id: 'Technology & IT', label: 'Technology & IT', icon: Cpu, rolesCount: 28, desc: 'Software development, full stack, mobile, architecture & systems.' },
@@ -125,10 +126,7 @@ export default function CareerDiscoveryPage() {
 
   // Filtered lists
   const domainRoles = selectedDomain
-    ? roles.filter((r) => {
-        const d = (r.domain || r.category || '').toLowerCase();
-        return d === selectedDomain.id.toLowerCase() || d.includes(selectedDomain.id.toLowerCase());
-      })
+    ? roles.filter((r) => matchesDomainFilter(r, selectedDomain))
     : [];
 
   const searchedRoles = searchTerm

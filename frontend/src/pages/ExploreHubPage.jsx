@@ -37,25 +37,59 @@ import CareerDiscoveryModal from '../components/discovery/CareerDiscoveryModal';
 import { ALL_18_DOMAINS_THEMES, getCareerTheme } from '../utils/careerThemes';
 
 export const DOMAIN_DETAILS = [
-  { code: '01', id: 'technology', label: 'Technology & IT', rolesCount: 28, subdomains: ['Frontend & Web', 'Backend & Microservices', 'Full Stack Engineering', 'Mobile App Development', 'QA & Automation', 'Systems & Architecture'] },
-  { code: '02', id: 'ai_ml', label: 'AI & Machine Learning', rolesCount: 16, subdomains: ['Classical Machine Learning', 'Deep Learning & Neural Networks', 'Generative AI & LLMs', 'Autonomous Agentic Systems', 'MLOps & Deployment'] },
-  { code: '03', id: 'data_science', label: 'Data Science & Analytics', rolesCount: 18, subdomains: ['Business Intelligence & Reporting', 'Exploratory Data Science', 'Data Engineering & Pipelines', 'Statistical Econometrics'] },
-  { code: '04', id: 'commerce_finance', label: 'Commerce & Finance', rolesCount: 22, subdomains: ['Corporate Accounting & Audit (CA)', 'Investment Banking & M&A', 'Wealth & Portfolio Management', 'Equity Research & Quantitative Trading'] },
-  { code: '05', id: 'arts_humanities', label: 'Arts & Humanities', rolesCount: 15, subdomains: ['Creative & Investigative Journalism', 'Content Strategy & Editorial', 'Public Relations & Corporate Comms', 'Historical Research & Curation'] },
-  { code: '06', id: 'business_management', label: 'Business & Management', rolesCount: 20, subdomains: ['Product Management & Agile', 'Management Consulting', 'Operations & Supply Chain', 'Human Resources & People Strategy'] },
-  { code: '07', id: 'healthcare_life', label: 'Healthcare & Life Sciences', rolesCount: 16, subdomains: ['Clinical Medicine & Diagnostics', 'Bioinformatics & Computational Biology', 'Pharmacovigilance & Drug Trials', 'Healthcare Informatics & Records'] },
-  { code: '08', id: 'core_engineering', label: 'Core Engineering', rolesCount: 18, subdomains: ['Mechanical CAD & Thermodynamics', 'Civil & Structural Mechanics', 'Electrical Systems & Power Grids', 'Robotics & Embedded Mechatronics'] },
-  { code: '09', id: 'cybersecurity', label: 'Cybersecurity', rolesCount: 14, subdomains: ['SOC Threat Hunting & SIEM', 'Penetration Testing & Offensive Sec', 'Cryptographic Infrastructure', 'Zero-Trust Cloud Defense'] },
-  { code: '10', id: 'cloud_devops', label: 'Cloud & DevOps', rolesCount: 14, subdomains: ['Cloud Architecture (AWS/Azure/GCP)', 'Kubernetes Cluster Orchestration', 'Infrastructure as Code (Terraform)', 'Site Reliability Engineering (SRE)'] },
-  { code: '11', id: 'law_legal', label: 'Law & Legal Studies', rolesCount: 14, subdomains: ['Constitutional & Appellate Advocacy', 'Corporate Contracts & Compliance', 'Intellectual Property & Patents', 'Arbitration & Commercial Dispute'] },
-  { code: '12', id: 'education_research', label: 'Education & Research', rolesCount: 12, subdomains: ['Instructional Design & Curriculum', 'Higher Education & Professorship', 'Educational Technology (EdTech)', 'Academic Research & Grants'] },
-  { code: '13', id: 'government_public', label: 'Government & Public Services', rolesCount: 12, subdomains: ['Civil Services (IAS/IPS Administration)', 'Public Policy & Policy Think Tanks', 'Diplomatic Foreign Service', 'Municipal & District Governance'] },
-  { code: '14', id: 'psychology_behavioral', label: 'Psychology & Behavioral Science', rolesCount: 11, subdomains: ['Clinical & Counseling Psychology', 'Organizational Psychology & Culture', 'Cognitive Neuroscience & Mind Labs', 'Behavioral Economics & Nudge Units'] },
-  { code: '15', id: 'design_creative', label: 'Design, Media & Creative Arts', rolesCount: 15, subdomains: ['UI/UX & Product Design Systems', 'Brand Identity & Visual Communication', 'Motion Graphics & 3D Visualization', 'Game Art & Environmental Design'] },
-  { code: '16', id: 'hospitality_tourism', label: 'Hospitality & Tourism', rolesCount: 10, subdomains: ['Luxury Hotel & Resort Operations', 'Revenue & Yield Optimization', 'Event Logistics & Conference Mgmt', 'International Travel & Tourism Tech'] },
-  { code: '17', id: 'agriculture_environmental', label: 'Agriculture & Environmental Science', rolesCount: 12, subdomains: ['Precision Agronomy & Smart Sensors', 'Environmental Impact & ESG Audits', 'Soil Biology & Regenerative Systems', 'Sustainable Agro-Supply Logistics'] },
-  { code: '18', id: 'entrepreneurship_innovation', label: 'Entrepreneurship & Innovation', rolesCount: 12, subdomains: ['Venture Incubation & MVP Builds', 'Product-Market Fit & Growth Loops', 'Venture Capital & Term Sheets', 'Startup Operations & Scaling'] },
+  { code: '01', id: 'technology', dbDomain: 'Technology and IT', label: 'Technology & IT', rolesCount: 35, subdomains: ['Frontend & Web', 'Backend & Microservices', 'Full Stack Engineering', 'Mobile App Development', 'QA & Automation', 'Systems & Architecture'] },
+  { code: '02', id: 'ai_ml', dbDomain: 'Artificial Intelligence & Machine Learning', label: 'AI & Machine Learning', rolesCount: 14, subdomains: ['Classical Machine Learning', 'Deep Learning & Neural Networks', 'Generative AI & LLMs', 'Autonomous Agentic Systems', 'MLOps & Deployment'] },
+  { code: '03', id: 'data_science', dbDomain: 'Data Science & Analytics', label: 'Data Science & Analytics', rolesCount: 14, subdomains: ['Business Intelligence & Reporting', 'Exploratory Data Science', 'Data Engineering & Pipelines', 'Statistical Econometrics'] },
+  { code: '04', id: 'commerce_finance', dbDomain: 'Commerce, Finance & Banking', label: 'Commerce & Finance', rolesCount: 17, subdomains: ['Corporate Accounting & Audit (CA)', 'Investment Banking & M&A', 'Wealth & Portfolio Management', 'Equity Research & Quantitative Trading'] },
+  { code: '05', id: 'arts_humanities', dbDomain: 'Arts, Humanities & Social Sciences', label: 'Arts & Humanities', rolesCount: 20, subdomains: ['Creative & Investigative Journalism', 'Content Strategy & Editorial', 'Public Relations & Corporate Comms', 'Historical Research & Curation'] },
+  { code: '06', id: 'business_management', dbDomain: 'Business, Management & Consulting', label: 'Business & Management', rolesCount: 16, subdomains: ['Product Management & Agile', 'Management Consulting', 'Operations & Supply Chain', 'Human Resources & People Strategy'] },
+  { code: '07', id: 'healthcare_life', dbDomain: 'Healthcare, Medicine & Life Sciences', label: 'Healthcare & Life Sciences', rolesCount: 15, subdomains: ['Clinical Medicine & Diagnostics', 'Bioinformatics & Computational Biology', 'Pharmacovigilance & Drug Trials', 'Healthcare Informatics & Records'] },
+  { code: '08', id: 'core_engineering', dbDomain: 'Core Engineering', label: 'Core Engineering', rolesCount: 15, subdomains: ['Mechanical CAD & Thermodynamics', 'Civil & Structural Mechanics', 'Electrical Systems & Power Grids', 'Robotics & Embedded Mechatronics'] },
+  { code: '09', id: 'cybersecurity', dbDomain: 'Cybersecurity & Information Security', label: 'Cybersecurity', rolesCount: 12, subdomains: ['SOC Threat Hunting & SIEM', 'Penetration Testing & Offensive Sec', 'Cryptographic Infrastructure', 'Zero-Trust Cloud Defense'] },
+  { code: '10', id: 'cloud_devops', dbDomain: 'Cloud, DevOps & Systems Engineering', label: 'Cloud & DevOps', rolesCount: 12, subdomains: ['Cloud Architecture (AWS/Azure/GCP)', 'Kubernetes Cluster Orchestration', 'Infrastructure as Code (Terraform)', 'Site Reliability Engineering (SRE)'] },
+  { code: '11', id: 'law_legal', dbDomain: 'Law & Legal Services', label: 'Law & Legal Studies', rolesCount: 11, subdomains: ['Constitutional & Appellate Advocacy', 'Corporate Contracts & Compliance', 'Intellectual Property & Patents', 'Arbitration & Commercial Dispute'] },
+  { code: '12', id: 'education_research', dbDomain: 'Education, Teaching & Academic Research', label: 'Education & Research', rolesCount: 12, subdomains: ['Instructional Design & Curriculum', 'Higher Education & Professorship', 'Educational Technology (EdTech)', 'Academic Research & Grants'] },
+  { code: '13', id: 'government_public', dbDomain: 'Government, Civil Services & Public Policy', label: 'Government & Public Services', rolesCount: 12, subdomains: ['Civil Services (IAS/IPS Administration)', 'Public Policy & Policy Think Tanks', 'Diplomatic Foreign Service', 'Municipal & District Governance'] },
+  { code: '14', id: 'psychology_behavioral', dbDomain: 'Psychology & Behavioral Sciences', label: 'Psychology & Behavioral Science', rolesCount: 10, subdomains: ['Clinical & Counseling Psychology', 'Organizational Psychology & Culture', 'Cognitive Neuroscience & Mind Labs', 'Behavioral Economics & Nudge Units'] },
+  { code: '15', id: 'design_creative', dbDomain: 'Design, Media & Creative Arts', label: 'Design, Media & Creative Arts', rolesCount: 14, subdomains: ['UI/UX & Product Design Systems', 'Brand Identity & Visual Communication', 'Motion Graphics & 3D Visualization', 'Game Art & Environmental Design'] },
+  { code: '16', id: 'hospitality_tourism', dbDomain: 'Hospitality, Tourism & Event Management', label: 'Hospitality & Tourism', rolesCount: 10, subdomains: ['Luxury Hotel & Resort Operations', 'Revenue & Yield Optimization', 'Event Logistics & Conference Mgmt', 'International Travel & Tourism Tech'] },
+  { code: '17', id: 'agriculture_environmental', dbDomain: 'Agriculture, Environment & Sustainability', label: 'Agriculture & Environmental Science', rolesCount: 11, subdomains: ['Precision Agronomy & Smart Sensors', 'Environmental Impact & ESG Audits', 'Soil Biology & Regenerative Systems', 'Sustainable Agro-Supply Logistics'] },
+  { code: '18', id: 'entrepreneurship_innovation', dbDomain: 'Entrepreneurship & Startups', label: 'Entrepreneurship & Innovation', rolesCount: 9, subdomains: ['Venture Incubation & MVP Builds', 'Product-Market Fit & Growth Loops', 'Venture Capital & Term Sheets', 'Startup Operations & Scaling'] },
 ];
+
+export function matchesDomainFilter(role, selectedDomainIdOrObj) {
+  if (!selectedDomainIdOrObj || selectedDomainIdOrObj === 'all' || selectedDomainIdOrObj === 'All') {
+    return true;
+  }
+  const roleDomain = (role?.domain || role?.category || '').toLowerCase().trim();
+  if (!roleDomain) return false;
+
+  if (typeof selectedDomainIdOrObj === 'object') {
+    const dbDom = (selectedDomainIdOrObj.dbDomain || '').toLowerCase();
+    const idStr = (selectedDomainIdOrObj.id || '').toLowerCase();
+    const labelStr = (selectedDomainIdOrObj.label || '').toLowerCase();
+    return (
+      (dbDom && roleDomain === dbDom) ||
+      (idStr && roleDomain.includes(idStr)) ||
+      (labelStr && roleDomain.includes(labelStr))
+    );
+  }
+
+  const key = String(selectedDomainIdOrObj).toLowerCase().trim();
+  const domainEntry = DOMAIN_DETAILS.find(
+    (d) =>
+      d.id.toLowerCase() === key ||
+      d.label.toLowerCase() === key ||
+      d.dbDomain.toLowerCase() === key
+  );
+  if (domainEntry) {
+    return (
+      roleDomain === domainEntry.dbDomain.toLowerCase() ||
+      roleDomain.includes(domainEntry.label.toLowerCase())
+    );
+  }
+  return roleDomain.includes(key);
+}
 
 export const CAREER_TRANSITION_PATHWAYS = [
   {
@@ -218,10 +252,7 @@ export default function ExploreHubPage() {
         (r.domain && r.domain.toLowerCase().includes(q)) ||
         (r.tools_technologies && r.tools_technologies.some((t) => t.toLowerCase().includes(q)));
 
-      const matchesDomain =
-        selectedDomainFilter === 'All' ||
-        (r.domain && r.domain.toLowerCase().includes(selectedDomainFilter.toLowerCase())) ||
-        (r.category && r.category.toLowerCase().includes(selectedDomainFilter.toLowerCase()));
+      const matchesDomain = matchesDomainFilter(r, selectedDomainFilter);
 
       return matchesSearch && matchesDomain;
     });
@@ -230,10 +261,7 @@ export default function ExploreHubPage() {
   // Selected domain roles
   const domainRoles = useMemo(() => {
     if (!selectedDomain) return [];
-    return roles.filter((r) => {
-      const d = (r.domain || r.category || '').toLowerCase();
-      return d.includes(selectedDomain.id) || d.includes(selectedDomain.label.toLowerCase());
-    });
+    return roles.filter((r) => matchesDomainFilter(r, selectedDomain));
   }, [roles, selectedDomain]);
 
   // Saved roles

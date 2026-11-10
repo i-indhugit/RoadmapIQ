@@ -383,7 +383,7 @@ const LandingPage = () => {
           </div>
 
           <p className="text-[11px] text-slate-400">
-            Next: Take the competency skill test or configure your weekly study hours.
+            Next: Choose your preparation duration and explore your personalized roadmap across 259+ careers.
           </p>
         </div>
       </section>
